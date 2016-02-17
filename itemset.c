@@ -201,23 +201,24 @@ static xyItemset findExistingIdenticalItemset(xyItemset newItemset) {
     return xyItemsetNull;
 }
 
-// Move outgoing Iedges from itemset1 to the corresponding core rules in
+// Move incomming Iedges from itemset1 to the corresponding core rules in
 // itemset2.  This happens when merging itemsets with identical cores.
 static void moveIedgeDestsToItemset(xyItemset itemset1, xyItemset itemset2) {
     xyItem item1, item2;
     xyForeachItemsetItem(itemset1, item1) {
+        utAssert(xyItemGetFirstOutIedge(item1) == xyIedgeNull);
         xyIedge iedge;
-        xyForeachItemOutIedge(item1, iedge) {
-            item2 = xyIedgeGetToItem(iedge);
+        xySafeForeachItemInIedge(item1, iedge) {
+            item2 = xyIedgeGetFromItem(iedge);
             if(xyItemGetItemset(item2) != itemset1) {
-                xyItemRemoveInIedge(item2, iedge);
-                xyItem destItem = findItemInItemset(itemset2, xyItemGetProduction(item2),
-                    xyItemGetDotPosition(item2));
+                xyItemRemoveInIedge(item1, iedge);
+                xyItem destItem = findItemInItemset(itemset2, xyItemGetProduction(item1),
+                    xyItemGetDotPosition(item1));
                 utAssert(destItem != xyItemNull);
                 printf("Moving iedge\n");
                 xyItemAppendInIedge(destItem, iedge);
             }
-        } xyEndItemOutIedge;
+        } xyEndSafeItemOutIedge;
     } xyEndItemsetItem;
 }
 
