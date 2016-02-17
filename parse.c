@@ -103,7 +103,7 @@ bool xyParseGrammar(char *fileName) {
         xyParserDestroy(xyCurrentParser);
         return false;
     }
-    xyBuildItemSets(xyCurrentParser);
+    xyBuildItemsets(xyCurrentParser);
     return true;
 }
 

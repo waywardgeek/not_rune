@@ -15,7 +15,7 @@ void xyPrintParser(xyParser parser);
 
 // Item sets
 xyParser xyParserCreate(utSym sym);
-void xyBuildItemSets(xyParser parser);
+void xyBuildItemsets(xyParser parser);
 void xyPrintItem(xyItem item);
 void xyPrintItemset(xyItemset itemset);
 

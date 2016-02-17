@@ -2,6 +2,7 @@
 
 // Print the item.
 void xyPrintItem(xyItem item) {
+    printf("%u: ", xyItem2Index(item));
     xyProduction production = xyItemGetProduction(item);
     xyRule rule = xyProductionGetRule(production);
     if(!xyItemCore(item)) {
@@ -22,6 +23,15 @@ void xyPrintItem(xyItem item) {
     if(position == dotPosition) {
         printf(" .");
     }
+    bool firstTime = true;
+    xyIedge iedge;
+    xyForeachItemOutIedge(item, iedge) {
+        if(firstTime) {
+            printf("  :");
+            firstTime = false;
+        }
+        printf(" %u", xyItem2Index(xyIedgeGetToItem(iedge)));
+    } xyEndItemOutIedge;
     putchar('\n');
 }
 
@@ -44,14 +54,14 @@ xyParser xyParserCreate(utSym sym) {
 }
 
 // Create a new itemset.
-xyItemset xyItemSetCreate(xyParser parser) {
+xyItemset xyItemsetCreate(xyParser parser) {
     xyItemset itemset = xyItemsetAlloc();
     xyParserAppendItemset(parser, itemset);
     return itemset;
 }
 
 // Add the production to the itemset.
-xyItem xyItemCreate(xyItemset itemset, xyProduction production, uint32 position, bool core) {
+xyItem xyItemCreate(xyItemset itemset, xyItem prevItem, xyProduction production, uint32 position, bool core) {
     xyItem item = xyItemAlloc();
     xyItemSetDotPosition(item, position);
     xyItemSetCore(item, core);
@@ -69,23 +79,35 @@ xyTransition xyTransitionCreate(xyMtoken mtoken, xyItemset fromItemset, xyItemse
     return transition;
 }
 
+// Create a new dependency edge between two items.
+xyIedge xyIedgeCreate(xyItem fromItem, xyItem toItem) {
+    xyIedge iedge = xyIedgeAlloc();
+    xyItemAppendOutIedge(fromItem, iedge);
+    xyItemAppendInIedge(toItem, iedge);
+    return iedge;
+}
+
 // Determine if the item is already in the itemset.
-static bool itemInItemset(xyItemset itemset, xyProduction production, uint32 dotPosition) {
+static xyItem findItemInItemset(xyItemset itemset, xyProduction production, uint32 dotPosition) {
     xyItem item;
     xyForeachItemsetItem(itemset, item) {
         if(xyItemGetProduction(item) == production && xyItemGetDotPosition(item) == dotPosition) {
-            return true;
+            return item;
         }
     } xyEndItemsetItem;
-    return false;
+    return xyItemNull;
 }
 
 // Add the rule's productions to the itemset.
-static void addRuleToItemset(xyItemset itemset, xyRule rule, bool core) {
+static void addRuleToItemset(xyItemset itemset, xyItem prevItem, xyRule rule, bool core) {
     xyProduction production;
     xyForeachRuleProduction(rule, production) {
-        if(!itemInItemset(itemset, production, 0)) {
-            xyItemCreate(itemset, production, 0, core);
+        xyItem item = findItemInItemset(itemset, production, 0);
+        if(item == xyItemNull) {
+            item = xyItemCreate(itemset, prevItem, production, 0, core);
+        }
+        if(prevItem != xyItemNull) {
+            xyIedgeCreate(prevItem, item);
         }
     } xyEndRuleProduction;
 }
@@ -107,14 +129,14 @@ static void computeClosure(xyParser parser, xyItemset itemset) {
                 if(rule == xyRuleNull) {
                     utError("Undefined non-terminal %s", utSymGetName(ruleSym));
                 }
-                addRuleToItemset(itemset, rule, false);
+                addRuleToItemset(itemset, item, rule, false);
             }
         }
     } xyEndItemsetItem;
 }
 
 // Build new itemsets that we can transition to from this one.
-static void buildNewItemSetsFromItemset(xyParser parser, xyItemset itemset) {
+static void buildNewItemsetsFromItemset(xyParser parser, xyItemset itemset) {
     //printf("Building transitions from itemset:");
     //xyPrintItemset(itemset);
     xyItem item;
@@ -129,16 +151,18 @@ static void buildNewItemSetsFromItemset(xyParser parser, xyItemset itemset) {
             if(transition == xyTransitionNull) {
                 //printf("New itemset for ");
                 //xyPrintItem(item);
-                destItemset = xyItemSetCreate(parser);
+                destItemset = xyItemsetCreate(parser);
                 transition = xyTransitionCreate(mtoken, itemset, destItemset);
             } else {
                 //printf("Found existing itemset for ");
                 //xyPrintItem(item);
                 destItemset = xyTransitionGetToItemset(transition);
             }
-            if(!itemInItemset(destItemset, production, position + 1)) {
-                xyItemCreate(destItemset, production, position + 1, true);
+            xyItem destItem = findItemInItemset(destItemset, production, position + 1);
+            if(destItem == xyItemNull) {
+                destItem = xyItemCreate(destItemset, item, production, position + 1, true);
             }
+            xyIedgeCreate(item, destItem);
         }
     } xyEndItemsetItem;
 }
@@ -151,7 +175,7 @@ static bool itemsetsHaveSameCore(xyItemset itemset1, xyItemset itemset2) {
             item = xyItemGetNextItemsetItem(item)) {
         xyProduction production = xyItemGetProduction(item);
         uint32 dotPosition = xyItemGetDotPosition(item);
-        if(!itemInItemset(itemset2, production, dotPosition)) {
+        if(findItemInItemset(itemset2, production, dotPosition) == xyItemNull) {
             return false;
         }
         numCores1++;
@@ -177,6 +201,26 @@ static xyItemset findExistingIdenticalItemset(xyItemset newItemset) {
     return xyItemsetNull;
 }
 
+// Move outgoing Iedges from itemset1 to the corresponding core rules in
+// itemset2.  This happens when merging itemsets with identical cores.
+static void moveIedgeDestsToItemset(xyItemset itemset1, xyItemset itemset2) {
+    xyItem item1, item2;
+    xyForeachItemsetItem(itemset1, item1) {
+        xyIedge iedge;
+        xyForeachItemOutIedge(item1, iedge) {
+            item2 = xyIedgeGetToItem(iedge);
+            if(xyItemGetItemset(item2) != itemset1) {
+                xyItemRemoveInIedge(item2, iedge);
+                xyItem destItem = findItemInItemset(itemset2, xyItemGetProduction(item2),
+                    xyItemGetDotPosition(item2));
+                utAssert(destItem != xyItemNull);
+                printf("Moving iedge\n");
+                xyItemAppendInIedge(destItem, iedge);
+            }
+        } xyEndItemOutIedge;
+    } xyEndItemsetItem;
+}
+
 // If outgoing transitions lead to itemsets that have identical cores to
 // existing itemsets, merge them.
 static void mergeItemsetsWithIdenticalCores(xyItemset itemset) {
@@ -186,8 +230,10 @@ static void mergeItemsetsWithIdenticalCores(xyItemset itemset) {
         destItemset = xyTransitionGetToItemset(transition);
         xyItemset oldItemset = findExistingIdenticalItemset(destItemset);
         if(oldItemset != xyItemsetNull) {
+            printf("Merging itemset %u into %u\n", xyItemset2Index(destItemset), xyItemset2Index(oldItemset));
             xyItemsetRemoveInTransition(destItemset, transition);
             xyItemsetAppendInTransition(oldItemset, transition);
+            moveIedgeDestsToItemset(destItemset, oldItemset);
             xyItemsetDestroy(destItemset);
         }
     } xyEndItemsetOutTransition;
@@ -201,15 +247,15 @@ static void computeLR0Sets(xyParser parser) {
     xyForeachParserItemset(parser, itemset) {
         // Note that we append itemsets to the parser in this loop.
         computeClosure(parser, itemset);
-        buildNewItemSetsFromItemset(parser, itemset);
+        buildNewItemsetsFromItemset(parser, itemset);
         mergeItemsetsWithIdenticalCores(itemset);
     } xyEndParserItemset;
 }
 
-void xyBuildItemSets(xyParser parser) {
+void xyBuildItemsets(xyParser parser) {
     xyRule goal = xyParserGetFirstRule(parser);
-    xyItemset goalSet = xyItemSetCreate(parser);
-    addRuleToItemset(goalSet, goal, true);
+    xyItemset goalSet = xyItemsetCreate(parser);
+    addRuleToItemset(goalSet, xyItemNull, goal, true);
     computeLR0Sets(parser);
     xyPrintParser(parser);
 }
