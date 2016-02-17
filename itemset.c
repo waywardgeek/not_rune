@@ -87,6 +87,28 @@ xyIedge xyIedgeCreate(xyItem fromItem, xyItem toItem) {
     return iedge;
 }
 
+// Create a new item in a token set.
+xyTitem xyTitemCreate(xyTset tset, xyMtoken mtoken) {
+    xyTitem titem = xyTsetFindTitem(tset, mtoken);
+    if(titem != xyTitemNull) {
+        // Already added it
+        return titem;
+    }
+    titem = xyTitemAlloc();
+    xyTitemSetMtoken(titem, mtoken);
+    xyTsetInsertTitem(tset, titem);
+    return titem;
+}
+
+// Add the EOF token to each production in the rule.  This is done just for the
+// first goal rule.
+static void addEOFTokenToProductions(xyRule rule) {
+    xyProduction production;
+    xyForeachRuleProduction(rule, production) {
+        xyTokenCreate(production, XY_TERM, xyEOFSym);
+    } xyEndRuleProduction;
+}
+
 // Determine if the item is already in the itemset.
 static xyItem findItemInItemset(xyItemset itemset, xyProduction production, uint32 dotPosition) {
     xyItem item;
@@ -253,10 +275,69 @@ static void computeLR0Sets(xyParser parser) {
     } xyEndParserItemset;
 }
 
+// Add the titems from tset1 to tset2.
+static void addTsetToTset(xyTset tset1, xyTset tset2) {
+    xyTitem titem;
+    xyForeachTsetTitem(tset1, titem) {
+        xyTitemCreate(tset2, xyTitemGetMtoken(titem));
+    } xyEndTsetTitem;
+}
+
+// Forward declaration for double-recursion.
+static void computeMtokenFirstTset(xyMtoken mtoken);
+
+// Update the FIRST tset with the first elements reachable in the production.
+static void updateFirstTsetWithProduction(xyTset tset, xyProduction production) {
+    xyToken token;
+    xyForeachProductionToken(production, token) {
+        xyMtoken mtoken = xyTokenGetMtoken(token);
+        if(xyMtokenGetType(mtoken) != XY_NONTERM) {
+            xyTitemCreate(tset, mtoken);
+            return;
+        }
+        xyTset ntset = xyMtokenGetFirstTset(mtoken);
+        if(ntset == xyTsetNull) {
+            computeMtokenFirstTset(mtoken);
+            ntset = xyMtokenGetFirstTset(mtoken);
+        }
+        addTsetToTset(ntset, tset);
+        if(!xyTsetHasEmpty(ntset)) {
+            return;
+        }
+    } xyEndProductionToken;
+    xyTsetSetHasEmpty(tset, true);
+}
+
+// Compute the tset for the mtoken.  If followed by a token who's mtoken is not
+// yet computed, compute that one first.
+static void computeMtokenFirstTset(xyMtoken mtoken) {
+    xyTset tset = xyTsetAlloc();
+    xyMtokenSetFirstTset(mtoken, tset);
+    xyParser parser = xyMtokenGetParser(mtoken);
+    xyRule rule = xyParserFindRule(parser, xyMtokenGetSym(mtoken));
+    xyProduction production;
+    xyForeachRuleProduction(rule, production) {
+        updateFirstTsetWithProduction(tset, production);
+    } xyEndRuleProduction;
+}
+
+// Compute the tsets of tokens that can be parsed first for each nonterminal.
+static void computeFirstTsets(xyParser parser) {
+    xyMtoken mtoken;
+    xyForeachParserMtoken(parser, mtoken) {
+        if(xyMtokenGetType(mtoken) == XY_NONTERM && xyMtokenGetFirstTset(mtoken) == xyTsetNull) {
+            computeMtokenFirstTset(mtoken);
+        }
+    } xyEndParserMtoken;
+}
+
+// Build all the item sets.
 void xyBuildItemsets(xyParser parser) {
     xyRule goal = xyParserGetFirstRule(parser);
+    addEOFTokenToProductions(goal);
     xyItemset goalSet = xyItemsetCreate(parser);
     addRuleToItemset(goalSet, xyItemNull, goal, true);
     computeLR0Sets(parser);
+    computeFirstTsets(parser);
     xyPrintParser(parser);
 }

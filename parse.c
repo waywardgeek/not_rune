@@ -24,11 +24,10 @@ char *xyValueTypeGetName(xyValueType type) {
 // Print a token.
 void xyPrintToken(xyToken token) {
     xyMtoken mtoken = xyTokenGetMtoken(token);
-    utSym sym = xyMtokenGetSym(mtoken);
     if(xyMtokenGetType(mtoken) == XY_KEYWORD) {
-        printf("\"%s\"", utSymGetName(sym));
+        printf("\"%s\"", xyMtokenGetName(mtoken));
     } else {
-        printf("%s", utSymGetName(sym));
+        printf("%s", xyMtokenGetName(mtoken));
     }
 }
 
@@ -64,7 +63,21 @@ void xyPrintParser(xyParser parser) {
         xyPrintItemset(itemset);
         printf("\n");
     } xyEndParserItemset;
-
+    xyMtoken mtoken;
+    xyForeachParserMtoken(parser, mtoken) {
+        if(xyMtokenGetType(mtoken) == XY_NONTERM) {
+            printf("  FIRST[%s] = ", xyMtokenGetName(mtoken));
+            xyTset tset = xyMtokenGetFirstTset(mtoken);
+            xyTitem titem;
+            xyForeachTsetTitem(tset, titem) {
+                printf(" %s", xyMtokenGetName(xyTitemGetMtoken(titem)));
+            } xyEndTsetTitem;
+            if(xyTsetHasEmpty(tset)) {
+                printf(" EMPTY");
+            }
+            putchar('\n');
+        }
+    }
 }
 
 // Create a new master token object on the parser.

@@ -2,6 +2,7 @@
 
 xyRoot xyTheRoot;
 utSym xyINTSym, xyUINTSym, xyFLOATSym, xyDOUBLESym, xyBOOLSym, xySTRINGSym, xyLISTSym, xyIDENTSym;
+utSym xyEOFSym, xyEMPTYSym;
 
 static void initSyms(void) {
     xyINTSym = utSymCreate("INT");
@@ -12,6 +13,8 @@ static void initSyms(void) {
     xySTRINGSym = utSymCreate("STRING");
     xyLISTSym = utSymCreate("LIST");
     xyIDENTSym = utSymCreate("IDENT");
+    xyEOFSym = utSymCreate("EOF");
+    xyEMPTYSym = utSymCreate("EMPTY");
 }
 
 int main(int argc, char **argv) {

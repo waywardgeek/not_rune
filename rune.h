@@ -19,9 +19,13 @@ void xyBuildItemsets(xyParser parser);
 void xyPrintItem(xyItem item);
 void xyPrintItemset(xyItemset itemset);
 
+// Shortcuts
+static inline char *xyMtokenGetName(xyMtoken mtoken) {return utSymGetName(xyMtokenGetSym(mtoken));}
+
 // Globals
 extern xyRoot xyTheRoot;
 extern utSym xyINTSym, xyUINTSym, xyFLOATSym, xyDOUBLESym, xyBOOLSym, xySTRINGSym, xyLISTSym, xyIDENTSym;
+extern utSym xyEOFSym, xyEMPTYSym;
 
 // Lex, Yacc stuff
 extern uint32 xyLineNum;
