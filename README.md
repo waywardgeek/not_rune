@@ -20,32 +20,32 @@ used to write the rune compiler.
 The "core syntax" of Rune will look lot a like Lisp.  For example, to define a
 factorial function:
 
-(func uint fact(uint n)
-    (if (= n 1)
-        (return 1))
-    (return (* n fact(- n 1))))
+    (func uint fact(uint n)
+        (if (= n 1)
+            (return 1))
+        (return (* n fact(- n 1))))
 
 Don't worry, because this ancient 1960's Lisp-like syntax is not what you will
 use to write programs.  That's because Rune will have a built-in LALR(1) parser
 which is used to translate much nicer looking code into its core Lisp-like
 syntax.  For example, you would normally write a factorial function like this:
 
-func fact(n) {
-    if n == 1 {
-        return 1
+    func fact(n) {
+        if n == 1 {
+            return 1
+        }
+        return n*fact(n-1)
     }
-    return n*fact(n-1)
-}
 
 Or for those of us who care a lot about speed:
 
-func fact(n) {
-    result = 1
-    for i = 2 to n {
-        result *= n
+    func fact(n) {
+        result = 1
+        for i = 2 to n {
+            result *= n
+        }
+        return result
     }
-    return result
-}
 
 The built-in LALR(1) parser will be used to extend the syntax of Rune in almost
 any way you like.  For example, the print statement will be defined with the
@@ -59,12 +59,12 @@ or uninitialized variables.
 Rune will be is strongly typed.  When you do not specify types of function
 parameters, they are infered from the caller.  Consider this min function:
 
-func min(a, b) {
-    if a <= b {
-        return a
+    func min(a, b) {
+        if a <= b {
+            return a
+        }
+        return b
     }
-    return b
-}
 
 When we call it with different parameter types, a new function is automatically
 instantiated.  The following calls are to two different compiled functions
