@@ -2,5 +2,5 @@ goal: statements;
 statements: | statement;
 statement: list;
 list: "(" values ")";
-values: | value;
+values: | values value;
 value: list | IDENT | INT | UINT | FLOAT | DOUBLE | BOOL | STRING;

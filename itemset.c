@@ -84,7 +84,9 @@ static bool itemInItemset(xyItemset itemset, xyProduction production, uint32 dot
 static void addRuleToItemset(xyItemset itemset, xyRule rule, bool core) {
     xyProduction production;
     xyForeachRuleProduction(rule, production) {
-        xyItemCreate(itemset, production, 0, core);
+        if(!itemInItemset(itemset, production, 0)) {
+            xyItemCreate(itemset, production, 0, core);
+        }
     } xyEndRuleProduction;
 }
 
