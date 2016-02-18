@@ -7,6 +7,7 @@ xyString xyStringCreate(uint8 *text, uint32 len);
 
 // Rule parsing
 bool xyParseGrammar(char *fileName);
+xyMtoken xyMtokenCreate(xyParser parser, xyMtokenType type, utSym sym);
 xyToken xyTokenCreate(xyProduction production, xyMtokenType type, utSym sym);
 char *xyValueTypeGetName(xyValueType type);
 void xyPrintToken(xyToken token);

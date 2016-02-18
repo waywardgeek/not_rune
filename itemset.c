@@ -23,11 +23,25 @@ void xyPrintItem(xyItem item) {
     if(position == dotPosition) {
         printf(" .");
     }
+    xyTset lookaheads = xyItemGetLookaheadTset(item);
+    if(lookaheads != xyTsetNull) {
+        printf(" [");
+        xyTitem titem;
+        bool firstTime = true;
+        xyForeachTsetTitem(lookaheads, titem) {
+            if(!firstTime) {
+                putchar(' ');
+            }
+            firstTime = false;
+            printf("%s", xyMtokenGetName(xyTitemGetMtoken(titem)));
+        } xyEndTsetTitem;
+        printf("]");
+    }
     bool firstTime = true;
     xyIedge iedge;
     xyForeachItemOutIedge(item, iedge) {
         if(firstTime) {
-            printf("  :");
+            printf(" :");
             firstTime = false;
         }
         printf(" %u", xyItem2Index(xyIedgeGetToItem(iedge)));
@@ -112,7 +126,7 @@ static void addEOFTokenToLookaheads(xyRule rule) {
             xyTset tset = xyTsetAlloc();
             xyItemSetLookaheadTset(item, tset);
             xyTitemCreate(tset, eofMtoken);
-            xyParserAppenUpdatedItem(parser, item);
+            xyParserAppendUpdatedItem(parser, item);
         } xyEndProductionItem;
     } xyEndRuleProduction;
 }
@@ -339,16 +353,88 @@ static void computeFirstTsets(xyParser parser) {
     } xyEndParserMtoken;
 }
 
+// Add the tset item to the destination if it does not already exist.  Return
+// true if it did not exist.
+static bool addTsetMtoken(xyTset tset, xyMtoken mtoken) {
+    xyTitem prevTitem = xyTsetFindTitem(tset, mtoken);
+    if(prevTitem == xyTitemNull) {
+        xyTitemCreate(tset, mtoken);
+        return true;
+    }
+    return false;
+}
+
+// Add the item to the updated list of items if it is not already there.
+static void addItemToUpdateList(xyItem item) {
+    if(xyItemInUpdateList(item)) {
+        return;
+    }
+    xyItemSetInUpdateList(item, true);
+    xyParser parser = xyItemsetGetParser(xyItemGetItemset(item));
+    xyParserAppendUpdatedItem(parser, item);
+}
+
+// Copy lookaheads from tset1 to tset2, and if any are new, return true.
+static bool copyTsetLookaheads(xyTset tset1, xyTset tset2) {
+    bool addedTitem = false;
+    xyTitem titem;
+    xyForeachTsetTitem(tset1, titem) {
+        xyMtoken mtoken = xyTitemGetMtoken(titem);
+        addedTitem |= addTsetMtoken(tset2, mtoken);
+    } xyEndTsetTitem;
+    return addedTitem;
+}
+
+// Add tokes fron the "first" tokens seen from the position in item1 to tset.
+// If we see a nonterminal that can be empty, continue to the next token.  If
+// we get to the end, add item's entire lookahead set.  Return true if we added
+// anything.
+static bool addLookaheadsFromFirst(xyItem item, xyTset tset) {
+    uint32 pos = xyItemGetDotPosition(item) + 1;
+    bool addedSomething = false;
+    xyProduction production = xyItemGetProduction(item);
+    uint32 numTokens = xyProductionGetUsedToken(production);
+    while(pos < numTokens) {
+        xyToken token = xyProductionGetiToken(production, pos);
+        xyMtoken mtoken = xyTokenGetMtoken(token);
+        if(xyMtokenGetType(mtoken) != XY_NONTERM) {
+            addedSomething |= addTsetMtoken(tset, mtoken);
+            return addedSomething;
+        }
+        xyTset firstTset = xyMtokenGetFirstTset(mtoken);
+        addedSomething |= copyTsetLookaheads(firstTset, tset);
+        if(!xyTsetHasEmpty(firstTset)) {
+            return addedSomething;
+        }
+        pos++;
+    }
+    addedSomething |= copyTsetLookaheads(xyItemGetLookaheadTset(item), tset);
+    return addedSomething;
+}
+
 // Propagate changes to the lookahead set of this item.
 static void propagateLookaheads(xyItem item) {
     xyItemset itemset = xyItemGetItemset(item);
+    xyTset sourceTset = xyItemGetLookaheadTset(item);
     xyIedge iedge;
     xyForeachItemOutIedge(item, iedge) {
         xyItem nitem = xyIedgeGetToItem(iedge);
-        if(xyItemGetItemset(nitem) != itemset) {
-        } else {
+        xyTset destTset = xyItemGetLookaheadTset(nitem);
+        if(destTset == xyTsetNull) {
+            destTset = xyTsetAlloc();
+            xyItemSetLookaheadTset(nitem, destTset);
         }
-    } exEndItemOutIedge;
+        bool updatedLookaheads;
+        if(xyItemGetItemset(nitem) != itemset) {
+            // Just copy over lookaheads
+            updatedLookaheads = copyTsetLookaheads(sourceTset, destTset);
+        } else {
+            updatedLookaheads = addLookaheadsFromFirst(item, destTset);
+        }
+        if(updatedLookaheads) {
+            addItemToUpdateList(nitem);
+        }
+    } xyEndItemOutIedge;
 }
 
 // Compute the tokens that can follow after any given reduction.
@@ -356,6 +442,7 @@ static void computeLookaheadSets(xyParser parser) {
     xyItem item = xyParserGetFirstUpdatedItem(parser);
     while(item != xyItemNull) {
         xyParserRemoveUpdatedItem(parser, item);
+        xyItemSetInUpdateList(item, false);
         propagateLookaheads(item);
         item = xyParserGetFirstUpdatedItem(parser);
     }

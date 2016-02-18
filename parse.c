@@ -66,7 +66,7 @@ void xyPrintParser(xyParser parser) {
     xyMtoken mtoken;
     xyForeachParserMtoken(parser, mtoken) {
         if(xyMtokenGetType(mtoken) == XY_NONTERM) {
-            printf("  FIRST[%s] = ", xyMtokenGetName(mtoken));
+            printf("FIRST[%s] = ", xyMtokenGetName(mtoken));
             xyTset tset = xyMtokenGetFirstTset(mtoken);
             xyTitem titem;
             xyForeachTsetTitem(tset, titem) {
