@@ -22,9 +22,8 @@ int main(int argc, char **argv) {
     xyDatabaseStart();
     xyTheRoot = xyRootAlloc();
     initSyms();
-    xyParseGrammar("rules");
     for(int i = 1; i < argc; i++) {
-        xyParse(argv[i]);
+        xyParseGrammar(argv[i]);
     }
     xyDatabaseStop();
     utStop(false);
