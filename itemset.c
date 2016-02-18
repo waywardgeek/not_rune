@@ -458,8 +458,33 @@ static void computeLookaheadSets(xyParser parser) {
     }
 }
 
+// Build actions for the state from the itemset.
+static void buildStateActions(agState state) {
+    xyItemset itemset = xyStateGetItemset(state);
+    xyTransition transition;
+    xyForeachItemsetOutTransition(itemset, transition) {
+        xyAction action = xyActionCreate(XY_GOTO, state, xyTransitionGetMtoken(transition));
+        xyActionSetDestState(action, 
+    } xyEndItemsetOutTransition;
+}
+
+// Build an AGTable from the itemsets.
+static xyAGTable buildAGTable(xyParser parser) {
+    xyAGTable agtable = xyAGTableAlloc();
+    xyItemset itemset;
+    xyForeachParserItemset(parser, itemset) {
+        xyState state = xyStateAlloc();
+        xyItemsetInsertState(itemset, state);
+        xyAGTableAppendState(agtable, state);
+    } xyEndParserItemset;
+    xyForeachAGTableState(agtable, state) {
+        buildStateActions(state);
+    } xyEndAGTableState;
+    return agtable;
+}
+
 // Build all the item sets.
-void xyBuildItemsets(xyParser parser) {
+xyAGTable xyBuildAGTable(xyParser parser) {
     xyRule goal = xyParserGetFirstRule(parser);
     xyItemset goalSet = xyItemsetCreate(parser);
     addRuleToItemset(goalSet, xyItemNull, goal, true);
@@ -468,4 +493,5 @@ void xyBuildItemsets(xyParser parser) {
     addEOFTokenToLookaheads(goal);
     computeLookaheadSets(parser);
     xyPrintParser(parser);
+    return buildAGTable(parser);
 }

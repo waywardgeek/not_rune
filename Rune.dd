@@ -45,7 +45,7 @@ relationship Root Namespace:Global cascade
 relationship Namespace Ident hashed mandatory
 
 
-schema Parse
+schema Syntax
 
 enum MtokenType XY_
     NONTERM
@@ -99,3 +99,27 @@ relationship Item Tset:Lookahead cascade child_only
 relationship Item:From Iedge:Out doubly_linked mandatory
 relationship Item:To Iedge:In doubly_linked mandatory
 relationship Parser Item:Updated tail_linked child_only
+
+Schema Parse
+
+enum ActionType XY_
+    GOTO
+    SHIFT
+    REDUCE
+    ACCEPT
+
+// Action Goto Table
+class AGTable
+
+class State array
+
+class Action
+    Mtoken mtoken
+    ActionType type
+    union type
+        State destState: SHIFT GOTO
+        Production production: REDUCE
+        
+relationship AGTable State array mandatory
+relationship State Action hashed mtoken
+relationship Itemset State
