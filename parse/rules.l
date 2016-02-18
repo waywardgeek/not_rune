@@ -1,20 +1,20 @@
 %{
 
-#include "rune.h"
+#include "parse_int.h"
 #include "ruleparse.h"
 
 #define YY_NEVER_INTERACTIVE 1
 #define YY_INPUT(buf,result,max_size) \
-    if((result = xyRead((char *) buf, max_size )) < 0 ) \
+    if((result = xpRead((char *) buf, max_size )) < 0 ) \
         YY_FATAL_ERROR( "input in flex scanner failed" );
 
-static int xyRead(char *buf, int maxSize)
+static int xpRead(char *buf, int maxSize)
 {
     int numChars = 0;
     int c;
 
     do {
-        c = getc(xyFile);
+        c = getc(xpFile);
         if(c != EOF && c != '\r') {
             *buf++ = c;
             numChars++;
@@ -40,7 +40,7 @@ static char *unmunge(
     return buffer;
 }
 
-int xywrap(void)
+int xpwrap(void)
 {
     return 1;
 }
@@ -62,7 +62,7 @@ static void noDebug(char *foo, ...) {}
 %%
 <INITIAL>^[ \t]*"//".*          ;
 <INITIAL>[ \t]+                 ;
-<INITIAL>\n                     { xyLineNum++; }
+<INITIAL>\n                     { xpLineNum++; }
 
 <INITIAL>INT                    { return INT; }
 <INITIAL>UINT                   { return UINT; }
@@ -72,11 +72,11 @@ static void noDebug(char *foo, ...) {}
 <INITIAL>STRING                 { return STRING; }
 <INITIAL>IDENT                  { return IDENT; }
 
-<INITIAL>\"([^"]|\\.)*\"        { myDebug("KEYWORD %s\n", xytext);
-                                  xylval.symVal = utSymCreate(unmunge(xytext));
+<INITIAL>\"([^"]|\\.)*\"        { myDebug("KEYWORD %s\n", xptext);
+                                  xplval.symVal = utSymCreate(unmunge(xptext));
                                   return KEYWORD; }
-<INITIAL>[a-zA-Z0-9_]+          { myDebug("NONTERM %s\n", xytext);
-                                  xylval.symVal = utSymCreate(xytext);
+<INITIAL>[a-zA-Z0-9_]+          { myDebug("NONTERM %s\n", xptext);
+                                  xplval.symVal = utSymCreate(xptext);
                                   return NONTERM; }
-<INITIAL>.                      { myDebug("Char '%c'\n", xytext[0]);
-                                  return xytext[0]; }
+<INITIAL>.                      { myDebug("Char '%c'\n", xptext[0]);
+                                  return xptext[0]; }

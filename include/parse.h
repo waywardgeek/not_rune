@@ -1,0 +1,2 @@
+xyAGTable xpParseGrammar(char *fileName);
+

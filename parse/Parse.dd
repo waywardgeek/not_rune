@@ -1,0 +1,50 @@
+module Parse xp
+
+import Database
+
+class Parser : xy
+
+class State : xy
+
+class Mtoken : xy
+
+class Itemset
+
+class Item
+    uint32 dotPosition
+    bool core
+    bool inUpdateList
+
+class Token
+
+class Rule
+
+class Production
+
+class Transition
+
+class Tset
+    bool hasEmpty
+
+class Tentry
+
+class Iedge
+
+relationship Parser Rule hashed mandatory
+relationship Parser Itemset doubly_linked mandatory
+relationship Itemset Item doubly_linked mandatory
+relationship Itemset State
+relationship Rule Production doubly_linked mandatory
+relationship Production Item doubly_linked mandatory
+relationship Production Token array mandatory
+relationship Mtoken Token doubly_linked mandatory
+relationship Mtoken Transition doubly_linked mandatory
+relationship Mtoken Tset:First child_only cascade
+relationship Itemset:From Transition:Out hashed Mtoken mandatory
+relationship Itemset:To Transition:In doubly_linked mandatory
+relationship Mtoken Tentry parent_only
+relationship Tset Tentry hashed Mtoken unordered mandatory
+relationship Item Tset:Lookahead cascade child_only
+relationship Item:From Iedge:Out doubly_linked mandatory
+relationship Item:To Iedge:In doubly_linked mandatory
+relationship Parser Item:Updated tail_linked child_only
