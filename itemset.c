@@ -102,10 +102,18 @@ xyTitem xyTitemCreate(xyTset tset, xyMtoken mtoken) {
 
 // Add the EOF token to each production in the rule.  This is done just for the
 // first goal rule.
-static void addEOFTokenToProductions(xyRule rule) {
+static void addEOFTokenToLookaheads(xyRule rule) {
+    xyParser parser = xyRuleGetParser(rule);
+    xyMtoken eofMtoken = xyMtokenCreate(parser, XY_TERM, xyEOFSym);
     xyProduction production;
     xyForeachRuleProduction(rule, production) {
-        xyTokenCreate(production, XY_TERM, xyEOFSym);
+        xyItem item;
+        xyForeachProductionItem(production, item) {
+            xyTset tset = xyTsetAlloc();
+            xyItemSetLookaheadTset(item, tset);
+            xyTitemCreate(tset, eofMtoken);
+            xyParserAppenUpdatedItem(parser, item);
+        } xyEndProductionItem;
     } xyEndRuleProduction;
 }
 
@@ -331,13 +339,36 @@ static void computeFirstTsets(xyParser parser) {
     } xyEndParserMtoken;
 }
 
+// Propagate changes to the lookahead set of this item.
+static void propagateLookaheads(xyItem item) {
+    xyItemset itemset = xyItemGetItemset(item);
+    xyIedge iedge;
+    xyForeachItemOutIedge(item, iedge) {
+        xyItem nitem = xyIedgeGetToItem(iedge);
+        if(xyItemGetItemset(nitem) != itemset) {
+        } else {
+        }
+    } exEndItemOutIedge;
+}
+
+// Compute the tokens that can follow after any given reduction.
+static void computeLookaheadSets(xyParser parser) {
+    xyItem item = xyParserGetFirstUpdatedItem(parser);
+    while(item != xyItemNull) {
+        xyParserRemoveUpdatedItem(parser, item);
+        propagateLookaheads(item);
+        item = xyParserGetFirstUpdatedItem(parser);
+    }
+}
+
 // Build all the item sets.
 void xyBuildItemsets(xyParser parser) {
     xyRule goal = xyParserGetFirstRule(parser);
-    addEOFTokenToProductions(goal);
     xyItemset goalSet = xyItemsetCreate(parser);
     addRuleToItemset(goalSet, xyItemNull, goal, true);
     computeLR0Sets(parser);
     computeFirstTsets(parser);
+    addEOFTokenToLookaheads(goal);
+    computeLookaheadSets(parser);
     xyPrintParser(parser);
 }

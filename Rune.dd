@@ -97,3 +97,4 @@ relationship Tset Titem hashed Mtoken unordered mandatory
 relationship Item Tset:Lookahead cascade child_only
 relationship Item:From Iedge:Out doubly_linked mandatory
 relationship Item:To Iedge:In doubly_linked mandatory
+relationship Parser Item:Updated doubly_linked
