@@ -29,12 +29,14 @@ class Tset
 class Tentry
 
 class Iedge
+    bool closure
 
-relationship Parser Rule hashed mandatory
+relationship Parser Rule doubly_linked mandatory
 relationship Parser Itemset doubly_linked mandatory
 relationship Itemset Item doubly_linked mandatory
 relationship Itemset State
 relationship Rule Production doubly_linked mandatory
+relationship Rule Mtoken cascade
 relationship Production Item doubly_linked mandatory
 relationship Production Token array mandatory
 relationship Mtoken Token doubly_linked mandatory

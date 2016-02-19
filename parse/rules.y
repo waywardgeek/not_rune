@@ -46,7 +46,8 @@ rule: ruleHeader productions ';'
 ruleHeader: NONTERM ':'
 {
     xpCurrentRule = xpRuleAlloc();
-    xpRuleSetSym(xpCurrentRule, $1);
+    xyMtoken mtoken = xyMtokenCreate(xpCurrentParser, XY_NONTERM, $1);
+    xpRuleInsertMtoken(xpCurrentRule, mtoken);
     xpParserAppendRule(xpCurrentParser, xpCurrentRule);
     xpCurrentProduction = xpProductionAlloc();
     xpRuleAppendProduction(xpCurrentRule, xpCurrentProduction);

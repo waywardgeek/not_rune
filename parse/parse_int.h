@@ -14,6 +14,9 @@ void xpBuildItemsets(xyParser parser);
 void xpPrintItem(xpItem item);
 void xpPrintItemset(xpItemset itemset);
 
+// Shortcuts
+static inline char *xpRuleGetName(xpRule rule) {return xyMtokenGetName(xpRuleGetMtoken(rule));}
+
 // Globals
 extern utSym xpINTSym, xpUINTSym, xpFLOATSym, xpDOUBLESym, xpBOOLSym, xpSTRINGSym, xpLISTSym, xpIDENTSym;
 extern utSym xpEOFSym, xpEMPTYSym;

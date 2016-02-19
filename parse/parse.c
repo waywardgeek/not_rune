@@ -109,6 +109,7 @@ xyAGTable xpParseGrammar(char *fileName) {
         return false;
     }
     xyAGTable agtable = xpBuildAGTable(xpCurrentParser);
+    xyPrintAGTable(agtable);
     xpDatabaseStop();
     return agtable;
 }

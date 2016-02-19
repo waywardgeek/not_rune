@@ -12,6 +12,8 @@ LIBS=-lddutil-dbg
 
 SOURCE= \
 main/main.c \
+database/action.c \
+database/debugging.c \
 database/parser.c \
 database/string.c \
 database/mtoken.c \

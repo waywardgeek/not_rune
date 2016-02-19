@@ -96,8 +96,9 @@ xpTransition xpTransitionCreate(xyMtoken mtoken, xpItemset fromItemset, xpItemse
 }
 
 // Create a new dependency edge between two items.
-xpIedge xpIedgeCreate(xpItem fromItem, xpItem toItem) {
+xpIedge xpIedgeCreate(xpItem fromItem, xpItem toItem, bool closure) {
     xpIedge iedge = xpIedgeAlloc();
+    xpIedgeSetClosure(iedge, closure);
     xpItemAppendOutIedge(fromItem, iedge);
     xpItemAppendInIedge(toItem, iedge);
     return iedge;
@@ -153,7 +154,7 @@ static void addRuleToItemset(xpItemset itemset, xpItem prevItem, xpRule rule, bo
             item = xpItemCreate(itemset, prevItem, production, 0, core);
         }
         if(prevItem != xpItemNull) {
-            xpIedgeCreate(prevItem, item);
+            xpIedgeCreate(prevItem, item, true);
         }
     } xpEndRuleProduction;
 }
@@ -170,10 +171,9 @@ static void computeClosure(xyParser parser, xpItemset itemset) {
             xpToken token = xpProductionGetiToken(production, position);
             xyMtoken mtoken = xpTokenGetMtoken(token);
             if(xyMtokenGetType(mtoken) == XY_NONTERM) {
-                utSym ruleSym = xyMtokenGetSym(mtoken);
-                xpRule rule = xpParserFindRule(parser, ruleSym);
+                xpRule rule = xpMtokenGetRule(mtoken);
                 if(rule == xpRuleNull) {
-                    utError("Undefined non-terminal %s", utSymGetName(ruleSym));
+                    utError("Undefined non-terminal %s", xyMtokenGetName(mtoken));
                 }
                 addRuleToItemset(itemset, item, rule, false);
             }
@@ -208,7 +208,7 @@ static void buildNewItemsetsFromItemset(xyParser parser, xpItemset itemset) {
             if(destItem == xpItemNull) {
                 destItem = xpItemCreate(destItemset, item, production, position + 1, true);
             }
-            xpIedgeCreate(item, destItem);
+            xpIedgeCreate(item, destItem, false);
         }
     } xpEndItemsetItem;
 }
@@ -337,8 +337,7 @@ static void updateFirstTsetWithProduction(xpTset tset, xpProduction production) 
 static void computeMtokenFirstTset(xyMtoken mtoken) {
     xpTset tset = xpTsetAlloc();
     xpMtokenSetFirstTset(mtoken, tset);
-    xyParser parser = xyMtokenGetParser(mtoken);
-    xpRule rule = xpParserFindRule(parser, xyMtokenGetSym(mtoken));
+    xpRule rule = xpMtokenGetRule(mtoken);
     xpProduction production;
     xpForeachRuleProduction(rule, production) {
         updateFirstTsetWithProduction(tset, production);
@@ -416,7 +415,6 @@ static bool addLookaheadsFromFirst(xpItem item, xpTset tset) {
 
 // Propagate changes to the lookahead set of this item.
 static void propagateLookaheads(xpItem item) {
-    xpItemset itemset = xpItemGetItemset(item);
     xpTset sourceTset = xpItemGetLookaheadTset(item);
     xpIedge iedge;
     xpForeachItemOutIedge(item, iedge) {
@@ -427,11 +425,10 @@ static void propagateLookaheads(xpItem item) {
             xpItemSetLookaheadTset(nitem, destTset);
         }
         bool updatedLookaheads;
-        if(xpItemGetItemset(nitem) != itemset) {
-            // Just copy over lookaheads
-            updatedLookaheads = copyTsetLookaheads(sourceTset, destTset);
-        } else {
+        if(xpIedgeClosure(iedge)) {
             updatedLookaheads = addLookaheadsFromFirst(item, destTset);
+        } else {
+            updatedLookaheads = copyTsetLookaheads(sourceTset, destTset);
         }
         if(updatedLookaheads) {
             addItemToUpdateList(nitem);
@@ -455,15 +452,39 @@ static void buildStateActions(xyState state) {
     xpItemset itemset = xpStateGetItemset(state);
     xpTransition transition;
     xpForeachItemsetOutTransition(itemset, transition) {
-        //xyAction action = xyActionCreate(XY_GOTO, state, xpTransitionGetMtoken(transition));
-        //xyActionSetDestState(action, 
-        // ...
+        xyState destState = xpItemsetGetState(xpTransitionGetToItemset(transition));
+        xyMtoken mtoken = xpTransitionGetMtoken(transition);
+        if(xyMtokenGetType(mtoken) == XY_NONTERM) {
+            xyGotoActionCreate(state, mtoken, destState);
+        } else {
+            xyShiftActionCreate(state, mtoken, destState);
+        }
     } xpEndItemsetOutTransition;
+    xyParser parser = xpItemsetGetParser(itemset);
+    xpItem item;
+    xpForeachItemsetItem(itemset, item) {
+        xpProduction production = xpItemGetProduction(item);
+        xpRule rule = xpProductionGetRule(production);
+        uint32 numTokens = xpProductionGetUsedToken(production);
+        if(xpItemGetDotPosition(item) == numTokens) {
+            xpTentry tentry;
+            xyMtoken reduceMtoken = xpRuleGetMtoken(rule);
+            xpForeachTsetTentry(xpItemGetLookaheadTset(item), tentry) {
+                xyMtoken mtoken = xpTentryGetMtoken(tentry);
+                if(rule != xpParserGetFirstRule(parser)) {
+                    xyReduceActionCreate(state, mtoken, reduceMtoken, numTokens);
+                } else {
+                    xyAcceptActionCreate(state, mtoken);
+                }
+            } xpEndTsetTentry;
+        }
+    } xpEndItemsetItem;
 }
 
 // Build an AGTable from the itemsets.
 static xyAGTable buildAGTable(xyParser parser) {
     xyAGTable agtable = xyAGTableAlloc();
+    xyParserInsertAGTable(parser, agtable);
     xpItemset itemset;
     xpForeachParserItemset(parser, itemset) {
         xyState state = xyStateAlloc();

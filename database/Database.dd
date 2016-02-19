@@ -71,13 +71,12 @@ class State array
 class Action
     Mtoken mtoken
     ActionType type
-    union type
-        State destState: SHIFT GOTO
-        Mtoken reduceMtoken: REDUCE
-        uint8 statesToPop: REDUCE
-        
+    uint32 statesToPop
+    State destState
+    Mtoken reduceMtoken
+
 relationship Root Parser hashed mandatory
 relationship Parser Mtoken hashed Type Sym mandatory
-relationship Parser AGTable hashed mandatory
-relationship AGTable State tail_linked mandatory
+relationship Parser AGTable mandatory
+relationship AGTable State array mandatory
 relationship State Action hashed mtoken mandatory
