@@ -19,14 +19,14 @@ database/string.c \
 database/mtoken.c \
 database/value.c \
 database/xydatabase.c \
-parse/itemset.c \
-parse/parse.c \
-parse/xpdatabase.c \
-parse/ruleparse.c \
-parse/rulelex.c
+parsegen/itemset.c \
+parsegen/parse.c \
+parsegen/xpdatabase.c \
+parsegen/ruleparse.c \
+parsegen/rulelex.c
 
 OBJS=$(patsubst %.c,obj/%.o,$(SOURCE))
-GENFILES=database/xydatabase.c include/xydatabase.h parse/xpdatabase.c parse/xpdatabase.h parse/ruleparse.c parse/ruleparse.h parse/rulelex.c
+GENFILES=database/xydatabase.c include/xydatabase.h parsegen/xpdatabase.c parsegen/xpdatabase.h parsegen/ruleparse.c parsegen/ruleparse.h parsegen/rulelex.c
 
 all: obj rune
 
@@ -40,23 +40,23 @@ database/xydatabase.c: include/xydatabase.h
 include/xydatabase.h: database/Database.dd
 	cd database; datadraw -h ../include/xydatabase.h Database.dd
 
-parse/xpdatabase.c: parse/xpdatabase.h
+parsegen/xpdatabase.c: parsegen/xpdatabase.h
 
-parse/xpdatabase.h: parse/Parse.dd
-	cd parse; datadraw -I ../database Parse.dd
+parsegen/xpdatabase.h: parsegen/Parsegen.dd
+	cd parsegen; datadraw -I ../database Parsegen.dd
 
-parse/ruleparse.c: parse/rules.y
-	cd parse; bison -d -b xp -p xp -o ruleparse.c rules.y
+parsegen/ruleparse.c: parsegen/rules.y
+	cd parsegen; bison -d -b xp -p xp -o ruleparse.c rules.y
 
-parse/rulelex.c: parse/rules.l parse/ruleparse.h
-	cd parse; flex -P xp -o rulelex.c rules.l
+parsegen/rulelex.c: parsegen/rules.l parsegen/ruleparse.h
+	cd parsegen; flex -P xp -o rulelex.c rules.l
 
 clean:
 	rm -f rune $(GENFILES)
 	rm -rf obj
 
 obj:
-	mkdir -p obj/database obj/main obj/parse
+	mkdir -p obj/database obj/main obj/parsegen
 
 obj/%.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<

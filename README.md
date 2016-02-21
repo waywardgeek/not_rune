@@ -20,10 +20,10 @@ used to write the rune compiler.
 The "core syntax" of Rune will look lot a like Lisp.  For example, to define a
 factorial function:
 
-    (func uint fact(uint n)
+    (func uint fact(uint n) (
         (if (= n 1)
             (return 1))
-        (return (* n fact(- n 1))))
+        (return (* n fact(- n 1)))))
 
 Don't worry, because this ancient 1960's Lisp-like syntax is not what you will
 use to write programs.  That's because Rune will have a built-in LALR(1) parser

@@ -1,5 +1,5 @@
 #include "database.h"
-#include "parse.h"
+#include "parsegen.h"
 
 xyRoot xyTheRoot;
 
