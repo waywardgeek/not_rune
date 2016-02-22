@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
     FILE *file = fopen(argv[2], "r");
     if(file == NULL) {
         printf("Unable to read file %s\n", argv[2]);
+        return 1;
     }
     paParse(file, parser);
     xyDatabaseStop();

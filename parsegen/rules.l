@@ -1,6 +1,6 @@
 %{
 
-#include "parse_int.h"
+#include "parsegen_int.h"
 #include "ruleparse.h"
 
 #define YY_NEVER_INTERACTIVE 1

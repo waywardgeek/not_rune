@@ -17,11 +17,7 @@ static uint32 paParenDepth, paBracketDepth;
 static bool paLastWasNewline;
 
 // Print out an error message and exit.
-void paError(
-    paToken token,
-    char *message,
-    ...)
-{
+void paError(paToken token, char *message, ...) {
     char *buff;
     va_list ap;
 
@@ -33,8 +29,7 @@ void paError(
 }
 
 // Initialize lexer.
-void paLexerStart(xyParser parser)
-{
+void paLexerStart(xyParser parser) {
     paCurrentParser = parser;
     paLine = NULL;
     paTextSize = 256;
@@ -45,47 +40,44 @@ void paLexerStart(xyParser parser)
 }
 
 // Stop the lexer.
-void paLexerStop(void)
-{
+void paLexerStop(void) {
 }
 
 // Just print the contents of the token
-void paPrintToken(
-    paToken token)
-{
+void paPrintToken(paToken token) {
     printf("%-6u ", paTokenGetLineNum(token));
     switch(paTokenGetType(token)) {
-    case PA_TOK_INTEGER:
+    case XY_TOK_INTEGER:
         printf("INTEGER: %llu\n", paTokenGetIntVal(token));
         break;
-    case PA_TOK_FLOAT:
+    case XY_TOK_FLOAT:
         printf("FLOAT: %g\n", paTokenGetFloatVal(token));
         break;
-    case PA_TOK_STRING:
+    case XY_TOK_STRING:
         printf("STRING: %s\n", paTokenGetText(token));
         break;
-    case PA_TOK_NEWLINE:
+    case XY_TOK_NEWLINE:
         printf("NEWLINE\n");
         break;
-    case PA_TOK_CHAR:
+    case XY_TOK_CHAR:
         printf("CHAR: %s\n", paTokenGetText(token));
         break;
-    case PA_TOK_IDENT:
+    case XY_TOK_IDENT:
         printf("IDENT: %s\n", paTokenGetText(token));
         break;
-    case PA_TOK_OPERATOR:
+    case XY_TOK_OPERATOR:
         printf("OPERATOR: %s\n", paTokenGetText(token));
         break;
-    case PA_TOK_COMMENT:
+    case XY_TOK_COMMENT:
         printf("COMMENT: %s\n", paTokenGetText(token));
         break;
-    case PA_TOK_KEYWORD:
+    case XY_TOK_KEYWORD:
         printf("KEYWORD: %s\n", paTokenGetText(token));
         break;
-    case PA_TOK_BEGIN:
+    case XY_TOK_BEGIN:
         printf("{\n");
         break;
-    case PA_TOK_END:
+    case XY_TOK_END:
         printf("}\n");
         break;
     default:
@@ -94,35 +86,33 @@ void paPrintToken(
 }
 
 // Create a token object.
-static inline paToken paTokenCreate(
-    paTokenType type,
-    uint8 *text)
-{
+static inline paToken paTokenCreate(xyMtokenType type, uint8 *text) {
     paToken token = paTokenAlloc();
-
     paTokenSetType(token, type);
     paTokenSetText(token, text, strlen((char *)text) + 1);
     paTokenSetLineNum(token, paLineNum);
+    utSym sym = utSymNull;
+    if(type == XY_TOK_KEYWORD) {
+        sym = utSymCreate((char *)text);
+    }
+    xyMtoken mtoken = xyParserFindMtoken(paCurrentParser, type, sym);
+    if(mtoken == xyMtokenNull) {
+        paError(token, "Unknown token type: %s", text);
+    }
     return token;
 }
 
 // Create a new integer token.
-static inline paToken paIntTokenCreate(
-    uint64 intVal,
-    uint8 *text)
-{
-    paToken token = paTokenCreate(PA_TOK_INTEGER, text);
+static inline paToken paIntTokenCreate(uint64 intVal, uint8 *text) {
+    paToken token = paTokenCreate(XY_TOK_INTEGER, text);
 
     paTokenSetIntVal(token, intVal);
     return token;
 }
 
 // Create a new float token.
-static inline paToken paFloatTokenCreate(
-    double floatVal,
-    uint8 *text)
-{
-    paToken token = paTokenCreate(PA_TOK_FLOAT, text);
+static inline paToken paFloatTokenCreate(double floatVal, uint8 *text) {
+    paToken token = paTokenCreate(XY_TOK_FLOAT, text);
 
     paTokenSetFloatVal(token, floatVal);
     return token;
@@ -130,19 +120,14 @@ static inline paToken paFloatTokenCreate(
 
 // Create a new operator or keyword token.  Just check to see if the keyword is
 // owned by an operator or staterule.
-static inline paToken paKeywordTokenCreate(
-    xyMtoken mtoken,
-    uint8 *text)
-{
-    paToken token = paTokenCreate(PA_TOK_KEYWORD, text);
+static inline paToken paKeywordTokenCreate(xyMtoken mtoken, uint8 *text) {
+    paToken token = paTokenCreate(XY_TOK_KEYWORD, text);
     paMtokenAppendToken(mtoken, token);
     return token;
 }
 
 // Skip blanks and control chars other than tab and newline.
-static uint8 *skipSpace(
-    uint8 *p)
-{
+static uint8 *skipSpace(uint8 *p) {
     uint8 c = *p;
 
     while(c <= ' ' && c != '\0' && c != '\n') {
@@ -152,8 +137,7 @@ static uint8 *skipSpace(
 }
 
 // Add a character to paText from paLine.
-static inline void addChar(void)
-{
+static inline void addChar(void) {
     int length = utf8FindLength(*paLine);
 
     if(paTextPos + length > paTextSize) {
@@ -166,9 +150,7 @@ static inline void addChar(void)
 }
 
 // Add an ASCII character to paText from paLine.
-static inline void addAscii(
-    uint8 c)
-{
+static inline void addAscii(uint8 c) {
     if(paTextPos >= paTextSize) {
         paTextSize <<= 1;
         paText = (uint8 *)realloc(paText, paTextSize*sizeof(uint8));
@@ -176,17 +158,15 @@ static inline void addAscii(
     paText[paTextPos++] = c;
 }
 
-static inline void addChars(
-    int numChars)
-{
+// Add numChars characters to paText from paLine.
+static inline void addChars(int numChars) {
     while(numChars-- != 0) {
         addChar();
     }
 }
 
 // Try to parse a comment.
-static inline bool readComment(void)
-{
+static inline bool readComment(void) {
     uint32 depth = 0;
 
     if(*paLine != '/' || (paLine[1] != '/' && paLine[1] != '*')) {
@@ -217,8 +197,7 @@ static inline bool readComment(void)
 }
 
 // Try to read an integer, but if a parsed float is longer, do that.
-static inline paToken readNumber(void)
-{
+static inline paToken readNumber(void) {
     uint8 c = *paLine;
     char *floatTail, *intTail;
     double floatVal;
@@ -243,8 +222,7 @@ static inline paToken readNumber(void)
 }
 
 // Try to read a string.
-static inline bool readString(void)
-{
+static inline bool readString(void) {
     if(*paLine != '"') {
         return false;
     }
@@ -278,8 +256,7 @@ static inline bool readString(void)
 
 // Try to read an operator.  We check up to 4-character long strings of ASCII
 // punctuation characters, and accept the longest found.
-static inline paToken readOperator(void)
-{
+static inline paToken readOperator(void) {
     xyMtoken mtoken;
     uint8 opString[5];
     int length;
@@ -291,7 +268,7 @@ static inline paToken readOperator(void)
     // length.
     while(length) {
         opString[length] = '\0';
-        mtoken = xyParserFindMtoken(paCurrentParser, XY_KEYWORD, utSymCreate((char *)opString));
+        mtoken = xyParserFindMtoken(paCurrentParser, XY_TOK_KEYWORD, utSymCreate((char *)opString));
         if(mtoken != xyMtokenNull) {
             paLine += length;
             return paKeywordTokenCreate(mtoken, opString);
@@ -302,9 +279,8 @@ static inline paToken readOperator(void)
 }
 
 // Try to read a keyword.
-static inline paToken lookForKeyword(void)
-{
-    xyMtoken mtoken = xyParserFindMtoken(paCurrentParser, XY_KEYWORD, utSymCreate((char *)paText));
+static inline paToken lookForKeyword(void) {
+    xyMtoken mtoken = xyParserFindMtoken(paCurrentParser, XY_TOK_KEYWORD, utSymCreate((char *)paText));
 
     if(mtoken == xyMtokenNull) {
         return paTokenNull;
@@ -314,8 +290,7 @@ static inline paToken lookForKeyword(void)
 
 // Read an identifier.  This should work so long as the first character is alpha
 // numeric or is not a plain ASCII character (has it's high bit set).
-static inline bool readIdentifier(void)
-{
+static inline bool readIdentifier(void) {
     uint8 c = *paLine;
 
     if(!(c & 0x80) && !isalnum(c) && c != '\\') {
@@ -330,15 +305,14 @@ static inline bool readIdentifier(void)
 }
 
 // Read one token, now that we know we've got some text to parse.
-static paToken readToken(void)
-{
+static paToken readToken(void) {
     paToken token;
 
     if(readComment()){
-        return paTokenCreate(PA_TOK_COMMENT, paText);
+        return paTokenCreate(XY_TOK_COMMENT, paText);
     }
     if(readString()) {
-        return paTokenCreate(PA_TOK_STRING, paText);
+        return paTokenCreate(XY_TOK_STRING, paText);
     }
     token = readNumber();
     if(token != paTokenNull) {
@@ -353,17 +327,16 @@ static paToken readToken(void)
         if(token != paTokenNull) {
             return token;
         }
-        return paTokenCreate(PA_TOK_IDENT, paText);
+        return paTokenCreate(XY_TOK_IDENT, paText);
     }
     // Must just be a single punctuation character
     addChar();
     addAscii('\0');
-    return paTokenCreate(PA_TOK_CHAR, paText);
+    return paTokenCreate(XY_TOK_CHAR, paText);
 }
 
 // Determine if paLine is nothing but spaces, tabs, and a single backslash.
-static inline bool lineIsSlash(void)
-{
+static inline bool lineIsSlash(void) {
     bool hasBackslash = false;
     uint8 *p = paLine;
     uint8 c;
@@ -382,8 +355,7 @@ static inline bool lineIsSlash(void)
 }
 
 // Parse one token.
-static paToken lexRawToken(void)
-{
+static paToken lexRawToken(void) {
     paTextPos = 0;
     if(paLine == NULL) {
         paLine = utf8ReadLine(paFile);
@@ -402,14 +374,13 @@ static paToken lexRawToken(void)
     paLine = skipSpace(paLine);
     if(*paLine == '\0') {
         paLine = NULL;
-        return paTokenCreate(PA_TOK_NEWLINE, (uint8 *)"\n");
+        return paTokenCreate(XY_TOK_NEWLINE, (uint8 *)"\n");
     }
     return readToken();
 }
 
 // Determine if the input line is blank.
-static inline bool lineIsBlank(void)
-{
+static inline bool lineIsBlank(void) {
     uint8 *p;
     uint8 c;
 
@@ -426,8 +397,7 @@ static inline bool lineIsBlank(void)
 }
 
 // Skip blank lines in the input.
-static void skipBlankLines(void)
-{
+static void skipBlankLines(void) {
     if(paLine != NULL) {
         return; // Nothing to skip.
     }
@@ -442,10 +412,9 @@ static void skipBlankLines(void)
 }
 
 // Parse a single token.
-paToken paLex(void)
-{
+paToken paLex(void) {
     paToken token;
-    paTokenType type;
+    xyMtokenType type;
     char *text;
 
     if(paLastWasNewline) {
@@ -457,7 +426,7 @@ paToken paLex(void)
     }
     type = paTokenGetType(token);
     // Eat newlines inside grouping operators
-    while(type == PA_TOK_NEWLINE && (paParenDepth > 0 || paBracketDepth > 0)) {
+    while(type == XY_TOK_NEWLINE && (paParenDepth > 0 || paBracketDepth > 0)) {
         paTokenDestroy(token);
         token = lexRawToken();
         type = paTokenGetType(token);
@@ -465,7 +434,7 @@ paToken paLex(void)
     // TODO: Deal with eating newlines between keywords and grouping operators, rather
     // than just these.
     text = (char *)paTokenGetText(token);
-    if(type == PA_TOK_OPERATOR) {
+    if(type == XY_TOK_OPERATOR) {
         if(!strcmp(text, "(")) {
             paParenDepth++;
         } else if(!strcmp(text, "[")) {
@@ -476,17 +445,17 @@ paToken paLex(void)
             paBracketDepth--;
         }
     }
-    if(type == PA_TOK_CHAR) {
+    if(type == XY_TOK_CHAR) {
         if(!strcmp(text, "{")) {
             paTokenDestroy(token);
-            token = paTokenCreate(PA_TOK_BEGIN, (uint8 *)"{");
+            token = paTokenCreate(XY_TOK_BEGIN, (uint8 *)"{");
             skipBlankLines();
         } else if(!strcmp(text, "}")) {
             paTokenDestroy(token);
-            token = paTokenCreate(PA_TOK_END, (uint8 *)"}");
+            token = paTokenCreate(XY_TOK_END, (uint8 *)"}");
             skipBlankLines();
         }
     }
-    paLastWasNewline = type == PA_TOK_NEWLINE;
+    paLastWasNewline = type == XY_TOK_NEWLINE;
     return token;
 }

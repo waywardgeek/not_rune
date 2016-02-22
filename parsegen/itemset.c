@@ -8,7 +8,7 @@
   adding the "lookahead" sets as a post-process, which is done here.  More
   details of how to make this all work is found on the other site.
 */
-#include "parse_int.h"
+#include "parsegen_int.h"
 
 // Print the item.
 void xpPrintItem(xpItem item) {
@@ -121,7 +121,7 @@ xpTentry xpTentryCreate(xpTset tset, xyMtoken mtoken) {
 // first goal rule.
 static void addEOFTokenToLookaheads(xpRule rule) {
     xyParser parser = xpRuleGetParser(rule);
-    xyMtoken eofMtoken = xyMtokenCreate(parser, XY_TERM, xpEOFSym);
+    xyMtoken eofMtoken = xyMtokenCreate(parser, XY_TOK_EOF, utSymNull);
     xpProduction production;
     xpForeachRuleProduction(rule, production) {
         xpItem item;
@@ -170,7 +170,7 @@ static void computeClosure(xyParser parser, xpItemset itemset) {
         if(position < xpProductionGetUsedToken(production)) {
             xpToken token = xpProductionGetiToken(production, position);
             xyMtoken mtoken = xpTokenGetMtoken(token);
-            if(xyMtokenGetType(mtoken) == XY_NONTERM) {
+            if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM) {
                 xpRule rule = xpMtokenGetRule(mtoken);
                 if(rule == xpRuleNull) {
                     utError("Undefined non-terminal %s", xyMtokenGetName(mtoken));
@@ -315,7 +315,7 @@ static void updateFirstTsetWithProduction(xpTset tset, xpProduction production) 
     xpToken token;
     xpForeachProductionToken(production, token) {
         xyMtoken mtoken = xpTokenGetMtoken(token);
-        if(xyMtokenGetType(mtoken) != XY_NONTERM) {
+        if(xyMtokenGetType(mtoken) != XY_TOK_NONTERM) {
             xpTentryCreate(tset, mtoken);
             return;
         }
@@ -348,7 +348,7 @@ static void computeMtokenFirstTset(xyMtoken mtoken) {
 static void computeFirstTsets(xyParser parser) {
     xyMtoken mtoken;
     xyForeachParserMtoken(parser, mtoken) {
-        if(xyMtokenGetType(mtoken) == XY_NONTERM && xpMtokenGetFirstTset(mtoken) == xpTsetNull) {
+        if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM && xpMtokenGetFirstTset(mtoken) == xpTsetNull) {
             computeMtokenFirstTset(mtoken);
         }
     } xyEndParserMtoken;
@@ -398,7 +398,7 @@ static bool addLookaheadsFromFirst(xpItem item, xpTset tset) {
     while(pos < numTokens) {
         xpToken token = xpProductionGetiToken(production, pos);
         xyMtoken mtoken = xpTokenGetMtoken(token);
-        if(xyMtokenGetType(mtoken) != XY_NONTERM) {
+        if(xyMtokenGetType(mtoken) != XY_TOK_NONTERM) {
             addedSomething |= addTsetMtoken(tset, mtoken);
             return addedSomething;
         }
@@ -454,7 +454,7 @@ static void buildStateActions(xyState state) {
     xpForeachItemsetOutTransition(itemset, transition) {
         xyState destState = xpItemsetGetState(xpTransitionGetToItemset(transition));
         xyMtoken mtoken = xpTransitionGetMtoken(transition);
-        if(xyMtokenGetType(mtoken) == XY_NONTERM) {
+        if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM) {
             xyGotoActionCreate(state, mtoken, destState);
         } else {
             xyShiftActionCreate(state, mtoken, destState);

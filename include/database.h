@@ -14,7 +14,7 @@ xyAction xyAcceptActionCreate(xyState state, xyMtoken mtoken);
 xyMtoken xyMtokenCreate(xyParser parser, xyMtokenType type, utSym sym);
 
 // Shortcuts
-static inline char *xyMtokenGetName(xyMtoken mtoken) {return utSymGetName(xyMtokenGetSym(mtoken));}
+char *xyMtokenGetName(xyMtoken mtoken);
 char *xyValueTypeGetName(xyValueType type);
 
 // Debugging

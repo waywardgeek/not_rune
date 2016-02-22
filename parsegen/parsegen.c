@@ -1,28 +1,13 @@
-#include "parse_int.h"
+#include "parsegen_int.h"
 
 uint32 xpLineNum;
 FILE *xpFile;
 xyParser xpCurrentParser;
-utSym xpINTSym, xpUINTSym, xpFLOATSym, xpDOUBLESym, xpBOOLSym, xpSTRINGSym, xpLISTSym, xpIDENTSym;
-utSym xpEOFSym, xpEMPTYSym;
-
-static void initSyms(void) {
-    xpINTSym = utSymCreate("INT");
-    xpUINTSym = utSymCreate("UINT");
-    xpFLOATSym = utSymCreate("FLOAT");
-    xpDOUBLESym = utSymCreate("DOUBLE");
-    xpBOOLSym = utSymCreate("BOOL");
-    xpSTRINGSym = utSymCreate("STRING");
-    xpLISTSym = utSymCreate("LIST");
-    xpIDENTSym = utSymCreate("IDENT");
-    xpEOFSym = utSymCreate("EOF");
-    xpEMPTYSym = utSymCreate("EMPTY");
-}
 
 // Print a token.
 void xpPrintToken(xpToken token) {
     xyMtoken mtoken = xpTokenGetMtoken(token);
-    if(xyMtokenGetType(mtoken) == XY_KEYWORD) {
+    if(xyMtokenGetType(mtoken) == XY_TOK_KEYWORD) {
         printf("\"%s\"", xyMtokenGetName(mtoken));
     } else {
         printf("%s", xyMtokenGetName(mtoken));
@@ -63,7 +48,7 @@ void xpPrintParser(xyParser parser) {
     } xpEndParserItemset;
     xyMtoken mtoken;
     xyForeachParserMtoken(parser, mtoken) {
-        if(xyMtokenGetType(mtoken) == XY_NONTERM) {
+        if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM) {
             printf("FIRST[%s] = ", xyMtokenGetName(mtoken));
             xpTset tset = xpMtokenGetFirstTset(mtoken);
             xpTentry tentry;
@@ -93,7 +78,6 @@ xpToken xpTokenCreate(xpProduction production, xyMtokenType type, utSym sym) {
 
 xyParser xpParseGrammar(char *fileName) {
     xpDatabaseStart();
-    initSyms();
     xpLineNum = 1;
     xpFile = fopen(fileName, "r");
     xpCurrentParser = xyParserCreate(utSymCreate("rules"));

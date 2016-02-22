@@ -46,10 +46,20 @@ relationship Namespace Ident hashed mandatory
 
 schema Parse
 
-enum MtokenType XY_
+enum MtokenType XY_TOK_
     NONTERM
     KEYWORD
-    TERM
+    INTEGER
+    FLOAT
+    STRING
+    CHAR
+    IDENT
+    OPERATOR
+    COMMENT
+    NEWLINE
+    BEGIN
+    END
+    EOF
 
 enum ActionType XY_
     GOTO

@@ -1,24 +1,11 @@
 module Parse pa
 
-enum TokenType PA_TOK_
-    INTEGER
-    FLOAT
-    STRING
-    CHAR
-    IDENT
-    OPERATOR
-    COMMENT
-    KEYWORD
-    NEWLINE
-    BEGIN
-    END
-
 import Database
 
 class Mtoken:xy
 
 class Token
-    TokenType type
+    xy:MtokenType type
     array uint8 text
     uint32 lineNum
     union type

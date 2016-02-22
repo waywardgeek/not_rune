@@ -1,6 +1,6 @@
 %{
 
-#include "parse_int.h"
+#include "parsegen_int.h"
 
 static xpRule xpCurrentRule;
 static xpProduction xpCurrentProduction;
@@ -29,7 +29,7 @@ void xperror(
 
 %token <symVal> NONTERM KEYWORD
 
-%token INT UINT FLOAT DOUBLE BOOL STRING IDENT
+%token INT FLOAT BOOL STRING IDENT
 
 %%
 
@@ -46,7 +46,7 @@ rule: ruleHeader productions ';'
 ruleHeader: NONTERM ':'
 {
     xpCurrentRule = xpRuleAlloc();
-    xyMtoken mtoken = xyMtokenCreate(xpCurrentParser, XY_NONTERM, $1);
+    xyMtoken mtoken = xyMtokenCreate(xpCurrentParser, XY_TOK_NONTERM, $1);
     xpRuleInsertMtoken(xpCurrentRule, mtoken);
     xpParserAppendRule(xpCurrentParser, xpCurrentRule);
     xpCurrentProduction = xpProductionAlloc();
@@ -76,39 +76,31 @@ tokens: // Empty
 
 token: INT
 {
-    xpTokenCreate(xpCurrentProduction, XY_TERM, xpINTSym);
-}
-| UINT
-{
-    xpTokenCreate(xpCurrentProduction, XY_TERM, xpUINTSym);
+    xpTermTokenCreate(xpCurrentProduction, XY_TOK_INT);
 }
 | FLOAT
 {
-    xpTokenCreate(xpCurrentProduction, XY_TERM, xpFLOATSym);
-}
-| DOUBLE
-{
-    xpTokenCreate(xpCurrentProduction, XY_TERM, xpDOUBLESym);
+    xpTermTokenCreate(xpCurrentProduction, XY_TOK_FLOAT);
 }
 | BOOL
 {
-    xpTokenCreate(xpCurrentProduction, XY_TERM, xpBOOLSym);
+    xpTermTokenCreate(xpCurrentProduction, XY_TOK_BOOL);
 }
 | STRING
 {
-    xpTokenCreate(xpCurrentProduction, XY_TERM, xpSTRINGSym);
+    xpTermTokenCreate(xpCurrentProduction, XY_TOK_STRING);
 }
 | IDENT
 {
-    xpTokenCreate(xpCurrentProduction, XY_TERM, xpIDENTSym);
+    xpTermTokenCreate(xpCurrentProduction, XY_TOK_IDENT);
 }
 | NONTERM
 {
-    xpTokenCreate(xpCurrentProduction, XY_NONTERM, $1);
+    xpTokenCreate(xpCurrentProduction, XY_TOK_NONTERM, $1);
 }
 | KEYWORD
 {
-    xpTokenCreate(xpCurrentProduction, XY_KEYWORD, $1);
+    xpTokenCreate(xpCurrentProduction, XY_TOK_KEYWORD, $1);
 }
 ;
 
