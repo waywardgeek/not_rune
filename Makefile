@@ -24,7 +24,7 @@ parse/padatabase.c \
 parse/parse.c \
 parse/utf8.c \
 parsegen/itemset.c \
-parsegen/parse.c \
+parsegen/parsegen.c \
 parsegen/xpdatabase.c \
 parsegen/ruleparse.c \
 parsegen/rulelex.c

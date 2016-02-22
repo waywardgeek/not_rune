@@ -1,2 +1,2 @@
-bool xpParseGrammar(char *fileName);
+xyParser xpParseGrammar(char *fileName);
 

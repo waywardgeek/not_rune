@@ -91,7 +91,7 @@ xpToken xpTokenCreate(xpProduction production, xyMtokenType type, utSym sym) {
     return token;
 }
 
-bool xpParseGrammar(char *fileName) {
+xyParser xpParseGrammar(char *fileName) {
     xpDatabaseStart();
     initSyms();
     xpLineNum = 1;
@@ -99,21 +99,17 @@ bool xpParseGrammar(char *fileName) {
     xpCurrentParser = xyParserCreate(utSymCreate("rules"));
     if(xpFile == NULL) {
         fprintf(stderr, "Unable to open file %s for reading\n", fileName);
-        return false;
+        return xyParserNull;
     }
     int rc = xpparse();
     fclose(xpFile);
     if(rc != 0) {
         xyParserDestroy(xpCurrentParser);
         xyDatabaseStop();
-        return false;
+        return xyParserNull;
     }
     xpBuildParserActionGotoTable(xpCurrentParser);
     xyPrintParser(xpCurrentParser);
     xpDatabaseStop();
-    return true;
-}
-
-bool xpParse(char *fileName) {
-    return true;
+    return xpCurrentParser;
 }
