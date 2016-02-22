@@ -45,10 +45,12 @@ int xpwrap(void)
     return 1;
 }
 
-#ifdef DV_DEBUG
-#define myDebug utDebug
+#ifdef XP_DEBUG
+#define myDebug printf
+#define myToken(token) {printf("%s\n", xptext); return (token);}
 #else
 #define myDebug noDebug
+#define myToken(token) return (token)
 #endif
 #undef YYLMAX
 #define YYLMAX 4096
@@ -64,13 +66,14 @@ static void noDebug(char *foo, ...) {}
 <INITIAL>[ \t]+                 ;
 <INITIAL>\n                     { xpLineNum++; }
 
-<INITIAL>INT                    { return INT; }
-<INITIAL>UINT                   { return UINT; }
-<INITIAL>FLOAT                  { return FLOAT; }
-<INITIAL>DOUBLE                 { return DOUBLE; }
-<INITIAL>BOOL                   { return BOOL; }
-<INITIAL>STRING                 { return STRING; }
-<INITIAL>IDENT                  { return IDENT; }
+<INITIAL>INTEGER                { myToken(INT); }
+<INITIAL>FLOAT                  { myToken(FLOAT); }
+<INITIAL>BOOL                   { myToken(BOOL); }
+<INITIAL>STRING                 { myToken(STRING); }
+<INITIAL>IDENT                  { myToken(IDENT); }
+<INITIAL>NEWLINE                { myToken(NEWLINE); }
+<INITIAL>ignore_newlines        { myToken(IGNORE_NEWLINES); }
+<INITIAL>"::"                   { myToken(DOUBLE_COLON); }
 
 <INITIAL>\"([^"]|\\.)*\"        { myDebug("KEYWORD %s\n", xptext);
                                   xplval.symVal = utSymCreate(unmunge(xptext));

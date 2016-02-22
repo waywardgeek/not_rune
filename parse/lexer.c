@@ -13,14 +13,12 @@ static xyParser paCurrentParser;
 static uint8 *paLine;
 static uint8 *paText;
 static size_t paTextSize, paTextPos;
-static uint32 paParenDepth, paBracketDepth;
 static bool paLastWasNewline;
 
 // Print out an error message and exit.
 void paError(paToken token, char *message, ...) {
     char *buff;
     va_list ap;
-
     va_start(ap, message);
     buff = utVsprintf((char *)message, ap);
     va_end(ap);
@@ -34,8 +32,6 @@ void paLexerStart(xyParser parser) {
     paLine = NULL;
     paTextSize = 256;
     paText = (uint8 *)calloc(paTextSize, sizeof(uint8));
-    paParenDepth = 0;
-    paBracketDepth = 0;
     paLastWasNewline = true;
 }
 
@@ -74,12 +70,6 @@ void paPrintToken(paToken token) {
     case XY_TOK_KEYWORD:
         printf("KEYWORD: %s\n", paTokenGetText(token));
         break;
-    case XY_TOK_BEGIN:
-        printf("{\n");
-        break;
-    case XY_TOK_END:
-        printf("}\n");
-        break;
     default:
         utExit("Unknown token type");
     }
@@ -97,15 +87,15 @@ static inline paToken paTokenCreate(xyMtokenType type, uint8 *text) {
     }
     xyMtoken mtoken = xyParserFindMtoken(paCurrentParser, type, sym);
     if(mtoken == xyMtokenNull) {
-        paError(token, "Unknown token type: %s", text);
+        mtoken = xyMtokenCreate(paCurrentParser, type, sym);
     }
+    paTokenSetMtoken(token, mtoken);
     return token;
 }
 
 // Create a new integer token.
 static inline paToken paIntTokenCreate(uint64 intVal, uint8 *text) {
     paToken token = paTokenCreate(XY_TOK_INTEGER, text);
-
     paTokenSetIntVal(token, intVal);
     return token;
 }
@@ -113,7 +103,6 @@ static inline paToken paIntTokenCreate(uint64 intVal, uint8 *text) {
 // Create a new float token.
 static inline paToken paFloatTokenCreate(double floatVal, uint8 *text) {
     paToken token = paTokenCreate(XY_TOK_FLOAT, text);
-
     paTokenSetFloatVal(token, floatVal);
     return token;
 }
@@ -122,14 +111,12 @@ static inline paToken paFloatTokenCreate(double floatVal, uint8 *text) {
 // owned by an operator or staterule.
 static inline paToken paKeywordTokenCreate(xyMtoken mtoken, uint8 *text) {
     paToken token = paTokenCreate(XY_TOK_KEYWORD, text);
-    paMtokenAppendToken(mtoken, token);
     return token;
 }
 
 // Skip blanks and control chars other than tab and newline.
 static uint8 *skipSpace(uint8 *p) {
     uint8 c = *p;
-
     while(c <= ' ' && c != '\0' && c != '\n') {
         c = *++p;
     }
@@ -139,7 +126,6 @@ static uint8 *skipSpace(uint8 *p) {
 // Add a character to paText from paLine.
 static inline void addChar(void) {
     int length = utf8FindLength(*paLine);
-
     if(paTextPos + length > paTextSize) {
         paTextSize <<= 1;
         paText = (uint8 *)realloc(paText, paTextSize*sizeof(uint8));
@@ -168,7 +154,6 @@ static inline void addChars(int numChars) {
 // Try to parse a comment.
 static inline bool readComment(void) {
     uint32 depth = 0;
-
     if(*paLine != '/' || (paLine[1] != '/' && paLine[1] != '*')) {
         return false;
     }
@@ -260,7 +245,6 @@ static inline paToken readOperator(void) {
     xyMtoken mtoken;
     uint8 opString[5];
     int length;
-
     for(length = 0; length < 4 && ispunct(paLine[length]); length++) {
         opString[length] = paLine[length];
     }
@@ -281,7 +265,6 @@ static inline paToken readOperator(void) {
 // Try to read a keyword.
 static inline paToken lookForKeyword(void) {
     xyMtoken mtoken = xyParserFindMtoken(paCurrentParser, XY_TOK_KEYWORD, utSymCreate((char *)paText));
-
     if(mtoken == xyMtokenNull) {
         return paTokenNull;
     }
@@ -292,7 +275,6 @@ static inline paToken lookForKeyword(void) {
 // numeric or is not a plain ASCII character (has it's high bit set).
 static inline bool readIdentifier(void) {
     uint8 c = *paLine;
-
     if(!(c & 0x80) && !isalnum(c) && c != '\\') {
         return false;
     }
@@ -307,7 +289,6 @@ static inline bool readIdentifier(void) {
 // Read one token, now that we know we've got some text to parse.
 static paToken readToken(void) {
     paToken token;
-
     if(readComment()){
         return paTokenCreate(XY_TOK_COMMENT, paText);
     }
@@ -340,7 +321,6 @@ static inline bool lineIsSlash(void) {
     bool hasBackslash = false;
     uint8 *p = paLine;
     uint8 c;
-
     while((c = *p++) != '\0') {
         if(c == '\\') {
             if(hasBackslash) {
@@ -383,7 +363,6 @@ static paToken lexRawToken(void) {
 static inline bool lineIsBlank(void) {
     uint8 *p;
     uint8 c;
-
     if(lineIsSlash()) {
         return true;
     }
@@ -412,11 +391,9 @@ static void skipBlankLines(void) {
 }
 
 // Parse a single token.
-paToken paLex(void) {
+paToken paLex(bool ignoreNewlines) {
     paToken token;
     xyMtokenType type;
-    char *text;
-
     if(paLastWasNewline) {
         skipBlankLines();
     }
@@ -426,35 +403,10 @@ paToken paLex(void) {
     }
     type = paTokenGetType(token);
     // Eat newlines inside grouping operators
-    while(type == XY_TOK_NEWLINE && (paParenDepth > 0 || paBracketDepth > 0)) {
+    while(ignoreNewlines && type == XY_TOK_NEWLINE) {
         paTokenDestroy(token);
         token = lexRawToken();
         type = paTokenGetType(token);
-    }
-    // TODO: Deal with eating newlines between keywords and grouping operators, rather
-    // than just these.
-    text = (char *)paTokenGetText(token);
-    if(type == XY_TOK_OPERATOR) {
-        if(!strcmp(text, "(")) {
-            paParenDepth++;
-        } else if(!strcmp(text, "[")) {
-            paBracketDepth++;
-        } else if(!strcmp(text, ")")) {
-            paParenDepth--;
-        } else if(!strcmp(text, "]")) {
-            paBracketDepth--;
-        }
-    }
-    if(type == XY_TOK_CHAR) {
-        if(!strcmp(text, "{")) {
-            paTokenDestroy(token);
-            token = paTokenCreate(XY_TOK_BEGIN, (uint8 *)"{");
-            skipBlankLines();
-        } else if(!strcmp(text, "}")) {
-            paTokenDestroy(token);
-            token = paTokenCreate(XY_TOK_END, (uint8 *)"}");
-            skipBlankLines();
-        }
     }
     paLastWasNewline = type == XY_TOK_NEWLINE;
     return token;

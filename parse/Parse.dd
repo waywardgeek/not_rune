@@ -13,4 +13,4 @@ class Token
         double floatVal: FLOAT
         Mtoken keywordVal: KEYWORD OPERATOR
 
-relationship Mtoken Token doubly_linked mandatory
+relationship Mtoken Token parent_only

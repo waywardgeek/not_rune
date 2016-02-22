@@ -7,6 +7,7 @@ char *xyMtokenGetName(xyMtoken mtoken) {
     case XY_TOK_KEYWORD:
         return utSymGetName(xyMtokenGetSym(mtoken));
     case XY_TOK_INTEGER: return "INTEGER";
+    case XY_TOK_BOOL: return "BOOL";
     case XY_TOK_FLOAT: return "FLOAT";
     case XY_TOK_STRING: return "STRING";
     case XY_TOK_CHAR: return "CHAR";
@@ -14,12 +15,11 @@ char *xyMtokenGetName(xyMtoken mtoken) {
     case XY_TOK_OPERATOR: return "OPERATOR";
     case XY_TOK_COMMENT: return "COMMENT";
     case XY_TOK_NEWLINE: return "NEWLINE";
-    case XY_TOK_BEGIN: return "BEGIN";
-    case XY_TOK_END: return "END";
     case XY_TOK_EOF: return "EOF";
     default:
         utExit("Unknown mtoken type");
     }
+    return NULL; // Dummy return
 }
 
 // Create a new master token object on the parser.

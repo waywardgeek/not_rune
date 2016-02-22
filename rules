@@ -1,6 +1,6 @@
 goal: statements;
-statements: | statement;
+statements: | statement NEWLINE;
 statement: list;
-list: "(" values ")";
+list: "(" values ")" :: ignore_newlines;
 values: | values value;
-value: list | IDENT | INT | UINT | FLOAT | DOUBLE | BOOL | STRING;
+value: list | IDENT | INTEGER | FLOAT | BOOL | STRING;

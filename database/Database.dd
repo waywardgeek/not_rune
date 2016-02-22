@@ -50,6 +50,7 @@ enum MtokenType XY_TOK_
     NONTERM
     KEYWORD
     INTEGER
+    BOOL
     FLOAT
     STRING
     CHAR
@@ -57,8 +58,6 @@ enum MtokenType XY_TOK_
     OPERATOR
     COMMENT
     NEWLINE
-    BEGIN
-    END
     EOF
 
 enum ActionType XY_
@@ -74,6 +73,7 @@ class Mtoken
     sym Sym
 
 class State array
+    bool ignoreNewlines
 
 class Action
     Mtoken mtoken

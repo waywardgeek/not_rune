@@ -22,9 +22,12 @@ static inline xyState top(xyStateArray stack) {
 static void parseUntilAccept(xyParser parser, xyStateArray stack) {
     while(true) {
         xyState state = top(stack);
-        paToken token = paLex();
+        paToken token = paLex(xyStateIgnoreNewlines(state));
         xyMtoken mtoken = paTokenGetMtoken(token);
         xyAction action = xyStateFindAction(state, mtoken);
+        if(action == xyActionNull) {
+            paError(token, "Syntax error");
+        }
         xyMtoken reduceMtoken;
         xyAction gotoAction;
         switch(xyActionGetType(action)) {

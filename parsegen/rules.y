@@ -29,7 +29,7 @@ void xperror(
 
 %token <symVal> NONTERM KEYWORD
 
-%token INT FLOAT BOOL STRING IDENT
+%token INT FLOAT BOOL STRING IDENT NEWLINE IGNORE_NEWLINES DOUBLE_COLON
 
 %%
 
@@ -58,10 +58,24 @@ productions: firstProduction
 | productions production
 ;
 
-firstProduction: tokens
+firstProduction: tokens optModifiers
 ;
 
-production: productionHeader tokens
+production: productionHeader tokens optModifiers
+;
+
+optModifiers: /* Empty */
+| DOUBLE_COLON modifiers
+;
+
+modifiers: /* Empty */
+| modifiers modifier
+;
+
+modifier: IGNORE_NEWLINES
+{
+    xpProductionSetIgnoreNewlines(xpCurrentProduction, true);
+}
 ;
 
 productionHeader: '|'
@@ -76,23 +90,27 @@ tokens: // Empty
 
 token: INT
 {
-    xpTermTokenCreate(xpCurrentProduction, XY_TOK_INT);
+    xpTokenCreate(xpCurrentProduction, XY_TOK_INTEGER, utSymNull);
 }
 | FLOAT
 {
-    xpTermTokenCreate(xpCurrentProduction, XY_TOK_FLOAT);
+    xpTokenCreate(xpCurrentProduction, XY_TOK_FLOAT, utSymNull);
 }
 | BOOL
 {
-    xpTermTokenCreate(xpCurrentProduction, XY_TOK_BOOL);
+    xpTokenCreate(xpCurrentProduction, XY_TOK_BOOL, utSymNull);
 }
 | STRING
 {
-    xpTermTokenCreate(xpCurrentProduction, XY_TOK_STRING);
+    xpTokenCreate(xpCurrentProduction, XY_TOK_STRING, utSymNull);
 }
 | IDENT
 {
-    xpTermTokenCreate(xpCurrentProduction, XY_TOK_IDENT);
+    xpTokenCreate(xpCurrentProduction, XY_TOK_IDENT, utSymNull);
+}
+| NEWLINE
+{
+    xpTokenCreate(xpCurrentProduction, XY_TOK_NEWLINE, utSymNull);
 }
 | NONTERM
 {

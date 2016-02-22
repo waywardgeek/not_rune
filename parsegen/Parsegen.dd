@@ -9,6 +9,7 @@ class State : xy
 class Mtoken : xy
 
 class Itemset
+    bool ignoreNewlines
 
 class Item
     uint32 dotPosition
@@ -20,6 +21,7 @@ class Token
 class Rule
 
 class Production
+    bool ignoreNewlines
 
 class Transition
 

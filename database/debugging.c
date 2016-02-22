@@ -24,6 +24,9 @@ void xyPrintState(xyState state) {
             utExit("Unknown action type");
         }
     } xyEndStateAction;
+    if(xyStateIgnoreNewlines(state)) {
+        printf(" ignore_newlines");
+    }
     putchar('\n');
 }
 

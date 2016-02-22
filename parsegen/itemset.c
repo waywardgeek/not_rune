@@ -70,8 +70,9 @@ void xpPrintItemset(xpItemset itemset) {
 }
 
 // Create a new itemset.
-xpItemset xpItemsetCreate(xyParser parser) {
+xpItemset xpItemsetCreate(xyParser parser, bool ignoreNewlines) {
     xpItemset itemset = xpItemsetAlloc();
+    xpItemsetSetIgnoreNewlines(itemset, ignoreNewlines);
     xpParserAppendItemset(parser, itemset);
     return itemset;
 }
@@ -197,7 +198,7 @@ static void buildNewItemsetsFromItemset(xyParser parser, xpItemset itemset) {
             if(transition == xpTransitionNull) {
                 //printf("New itemset for ");
                 //xpPrintItem(item);
-                destItemset = xpItemsetCreate(parser);
+                destItemset = xpItemsetCreate(parser, xpProductionIgnoreNewlines(production));
                 transition = xpTransitionCreate(mtoken, itemset, destItemset);
             } else {
                 //printf("Found existing itemset for ");
@@ -486,6 +487,7 @@ static void buildParserActionGotoTable(xyParser parser) {
     xpItemset itemset;
     xpForeachParserItemset(parser, itemset) {
         xyState state = xyStateAlloc();
+        xyStateSetIgnoreNewlines(state, xpItemsetIgnoreNewlines(itemset));
         xpItemsetInsertState(itemset, state);
         xyParserAppendState(parser, state);
     } xpEndParserItemset;
@@ -498,7 +500,7 @@ static void buildParserActionGotoTable(xyParser parser) {
 // Build all the item sets.
 void xpBuildParserActionGotoTable(xyParser parser) {
     xpRule goal = xpParserGetFirstRule(parser);
-    xpItemset goalSet = xpItemsetCreate(parser);
+    xpItemset goalSet = xpItemsetCreate(parser, false);
     addRuleToItemset(goalSet, xpItemNull, goal, true);
     computeLR0Sets(parser);
     computeFirstTsets(parser);
