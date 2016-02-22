@@ -14,6 +14,7 @@ static uint8 *paLine;
 static uint8 *paText;
 static size_t paTextSize, paTextPos;
 static bool paLastWasNewline;
+static bool paEnding;
 
 // Print out an error message and exit.
 void paError(paToken token, char *message, ...) {
@@ -33,6 +34,7 @@ void paLexerStart(xyParser parser) {
     paTextSize = 256;
     paText = (uint8 *)calloc(paTextSize, sizeof(uint8));
     paLastWasNewline = true;
+    paEnding = false;
 }
 
 // Stop the lexer.
@@ -69,6 +71,9 @@ void paPrintToken(paToken token) {
         break;
     case XY_TOK_KEYWORD:
         printf("KEYWORD: %s\n", paTokenGetText(token));
+        break;
+    case XY_TOK_EOF:
+        printf("EOF\n");
         break;
     default:
         utExit("Unknown token type");
@@ -340,14 +345,14 @@ static paToken lexRawToken(void) {
     if(paLine == NULL) {
         paLine = utf8ReadLine(paFile);
         if(paLine == NULL) {
-            return paTokenNull;
+            return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
         }
         paLineNum++;
     }
     while(lineIsSlash()) {
         paLine = utf8ReadLine(paFile);
         if(paLine == NULL) {
-            return paTokenNull;
+            return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
         }
         paLineNum++;
     }
@@ -392,15 +397,16 @@ static void skipBlankLines(void) {
 
 // Parse a single token.
 paToken paLex(bool ignoreNewlines) {
+    if(paEnding) {
+        return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
+    }
+    bool hadNewline = paLastWasNewline;
     paToken token;
     xyMtokenType type;
     if(paLastWasNewline) {
         skipBlankLines();
     }
     token = lexRawToken();
-    if(token == paTokenNull) {
-        return token;
-    }
     type = paTokenGetType(token);
     // Eat newlines inside grouping operators
     while(ignoreNewlines && type == XY_TOK_NEWLINE) {
@@ -408,6 +414,12 @@ paToken paLex(bool ignoreNewlines) {
         token = lexRawToken();
         type = paTokenGetType(token);
     }
+    // Add newline to end of file if missing
+    if(type == XY_TOK_EOF && !hadNewline) {
+        paEnding = true;
+        return paTokenCreate(XY_TOK_NEWLINE, (uint8 *)"\n");
+    }
     paLastWasNewline = type == XY_TOK_NEWLINE;
+    paPrintToken(token);
     return token;
 }

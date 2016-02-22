@@ -3,4 +3,5 @@ statements: | statement NEWLINE;
 statement: list;
 list: "(" values ")" :: ignore_newlines;
 values: | values value;
-value: list | IDENT | INTEGER | FLOAT | BOOL | STRING;
+value: list | IDENT | INTEGER | FLOAT | BOOL | STRING | operator;
+operator: "+" | "-" | "*" | "/" | "%" | "==" | "!=" | ">" | "<" | ">=" | "<=" | "!" | "&&" | "||" | "~" | "&" | "|" | "^" | "<<" | ">>";

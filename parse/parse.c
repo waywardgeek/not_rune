@@ -3,6 +3,21 @@
 FILE *paFile;
 uint32 paLineNum;
 
+// Print out the stack.
+static void printStack(xyStateArray stack) {
+    putchar('[');
+    bool firstTime = true;
+    xyState state;
+    xyForeachStateArrayState(stack, state) {
+        if(!firstTime) {
+            putchar(' ');
+        }
+        firstTime = false;
+        printf("%u", xyStateGetParserIndex(state));
+    } xyEndStateArrayState;
+    printf("]\n");
+}
+
 // Push a state onto the stack.
 static inline void push(xyStateArray stack, xyState state) {
     xyStateArrayAppendState(stack, state);
@@ -20,9 +35,11 @@ static inline xyState top(xyStateArray stack) {
 
 // Parse input tokens util we accept, or find an error.
 static void parseUntilAccept(xyParser parser, xyStateArray stack) {
+    xyState state = top(stack);
+    paToken token = paLex(xyStateIgnoreNewlines(state));
     while(true) {
-        xyState state = top(stack);
-        paToken token = paLex(xyStateIgnoreNewlines(state));
+        printStack(stack);
+        state = top(stack);
         xyMtoken mtoken = paTokenGetMtoken(token);
         xyAction action = xyStateFindAction(state, mtoken);
         if(action == xyActionNull) {
@@ -35,6 +52,7 @@ static void parseUntilAccept(xyParser parser, xyStateArray stack) {
             return;
         case XY_SHIFT:
             push(stack, xyActionGetDestState(action));
+            token = paLex(xyStateIgnoreNewlines(state));
             break;
         case XY_REDUCE:
             reduceMtoken = xyActionGetReduceMtoken(action);
@@ -53,12 +71,14 @@ static void parseUntilAccept(xyParser parser, xyStateArray stack) {
 bool paParse(FILE *file, xyParser parser) {
     paFile = file;
     paDatabaseStart();
+    utf8Start();
     paLexerStart(parser);
     xyStateArray stack = xyStateArrayAlloc();
     push(stack, xyParserGetiState(parser, 0));
     parseUntilAccept(parser, stack);
     xyStateArrayFree(stack);
     paLexerStop();
+    utf8Stop();
     paDatabaseStop();
     return true;
 }
