@@ -19,6 +19,8 @@ database/string.c \
 database/mtoken.c \
 database/value.c \
 database/xydatabase.c \
+parse/padatabase.c \
+parse/parse.c \
 parsegen/itemset.c \
 parsegen/parse.c \
 parsegen/xpdatabase.c \
@@ -26,7 +28,7 @@ parsegen/ruleparse.c \
 parsegen/rulelex.c
 
 OBJS=$(patsubst %.c,obj/%.o,$(SOURCE))
-GENFILES=database/xydatabase.c include/xydatabase.h parsegen/xpdatabase.c parsegen/xpdatabase.h parsegen/ruleparse.c parsegen/ruleparse.h parsegen/rulelex.c
+GENFILES=database/xydatabase.c include/xydatabase.h parsegen/xpdatabase.c parsegen/xpdatabase.h parsegen/ruleparse.c parsegen/ruleparse.h parsegen/rulelex.c parse/padatabase.c parse/padatabase.h
 
 all: obj rune
 
@@ -45,6 +47,11 @@ parsegen/xpdatabase.c: parsegen/xpdatabase.h
 parsegen/xpdatabase.h: parsegen/Parsegen.dd
 	cd parsegen; datadraw -I ../database Parsegen.dd
 
+parse/padatabase.c: parse/padatabase.h
+
+parse/padatabase.h: parse/Parse.dd
+	cd parse; datadraw -I ../database Parse.dd
+
 parsegen/ruleparse.c: parsegen/rules.y
 	cd parsegen; bison -d -b xp -p xp -o ruleparse.c rules.y
 
@@ -56,7 +63,7 @@ clean:
 	rm -rf obj
 
 obj:
-	mkdir -p obj/database obj/main obj/parsegen
+	mkdir -p obj/database obj/main obj/parsegen obj/parse
 
 obj/%.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
