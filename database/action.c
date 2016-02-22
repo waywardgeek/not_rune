@@ -6,10 +6,10 @@ static void reportConflict(xyActionType type1, xyAction action) {
     xyMtoken mtoken = xyActionGetMtoken(action);
     xyState state = xyActionGetState(action);
     if(type1 == XY_SHIFT || type2 == XY_SHIFT) {
-        utWarning("Shift/Reduce conflict in state %u on '%s'", xyStateGetAGTableIndex(state),
+        utWarning("Shift/Reduce conflict in state %u on '%s'", xyStateGetParserIndex(state),
             xyMtokenGetName(mtoken));
     } else {
-        utWarning("Reduce/Reduce conflict in state %u on '%s'", xyStateGetAGTableIndex(state),
+        utWarning("Reduce/Reduce conflict in state %u on '%s'", xyStateGetParserIndex(state),
             xyMtokenGetName(mtoken));
     }
 }

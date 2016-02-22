@@ -7,7 +7,7 @@ void xpPrintToken(xpToken token);
 void xpPrintRule(xpRule rule);
 void xpPrintParser(xyParser parser);
 xpToken xpTokenCreate(xpProduction production, xyMtokenType type, utSym sym);
-xyAGTable xpBuildAGTable(xyParser parser);
+void xpBuildParserActionGotoTable(xyParser parser);
 
 // Item sets
 void xpBuildItemsets(xyParser parser);

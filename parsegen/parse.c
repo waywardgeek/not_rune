@@ -91,7 +91,7 @@ xpToken xpTokenCreate(xpProduction production, xyMtokenType type, utSym sym) {
     return token;
 }
 
-xyAGTable xpParseGrammar(char *fileName) {
+bool xpParseGrammar(char *fileName) {
     xpDatabaseStart();
     initSyms();
     xpLineNum = 1;
@@ -108,10 +108,10 @@ xyAGTable xpParseGrammar(char *fileName) {
         xyDatabaseStop();
         return false;
     }
-    xyAGTable agtable = xpBuildAGTable(xpCurrentParser);
-    xyPrintAGTable(agtable);
+    xpBuildParserActionGotoTable(xpCurrentParser);
+    xyPrintParser(xpCurrentParser);
     xpDatabaseStop();
-    return agtable;
+    return true;
 }
 
 bool xpParse(char *fileName) {

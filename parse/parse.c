@@ -1,5 +1,8 @@
 #include "parse_int.h"
 
+FILE *paFile;
+uint32 paLineNum;
+
 // Push a state onto the stack.
 static inline void push(xyStateArray stack, xyState state) {
     xyStateArrayAppendState(stack, state);
@@ -16,7 +19,7 @@ static inline xyState top(xyStateArray stack) {
 }
 
 // Parse input tokens util we accept, or find an error.
-static void parseUntilAccept(xyAGTable agTable, xyStateArray stack) {
+static void parseUntilAccept(xyParser parser, xyStateArray stack) {
     while(true) {
         xyState state = top(stack);
         paToken token = paLex();
@@ -44,10 +47,15 @@ static void parseUntilAccept(xyAGTable agTable, xyStateArray stack) {
 }
 
 // Parse the input file using the action-goto table.
-bool paParse(FILE *file, xyAGTable agtable) {
+bool paParse(FILE *file, xyParser parser) {
+    paFile = file;
+    paDatabaseStart();
+    paLexerStart(parser);
     xyStateArray stack = xyStateArrayAlloc();
-    push(stack, xyAGTableGetiState(agtable, 0));
-    parseUntilAccept(agtable, stack);
+    push(stack, xyParserGetiState(parser, 0));
+    parseUntilAccept(parser, stack);
     xyStateArrayFree(stack);
+    paLexerStop();
+    paDatabaseStop();
     return true;
 }

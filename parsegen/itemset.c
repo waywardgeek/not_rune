@@ -481,25 +481,22 @@ static void buildStateActions(xyState state) {
     } xpEndItemsetItem;
 }
 
-// Build an AGTable from the itemsets.
-static xyAGTable buildAGTable(xyParser parser) {
-    xyAGTable agtable = xyAGTableAlloc();
-    xyParserInsertAGTable(parser, agtable);
+// Build an Parser from the itemsets.
+static void buildParserActionGotoTable(xyParser parser) {
     xpItemset itemset;
     xpForeachParserItemset(parser, itemset) {
         xyState state = xyStateAlloc();
         xpItemsetInsertState(itemset, state);
-        xyAGTableAppendState(agtable, state);
+        xyParserAppendState(parser, state);
     } xpEndParserItemset;
     xyState state;
-    xyForeachAGTableState(agtable, state) {
+    xyForeachParserState(parser, state) {
         buildStateActions(state);
-    } xyEndAGTableState;
-    return agtable;
+    } xyEndParserState;
 }
 
 // Build all the item sets.
-xyAGTable xpBuildAGTable(xyParser parser) {
+void xpBuildParserActionGotoTable(xyParser parser) {
     xpRule goal = xpParserGetFirstRule(parser);
     xpItemset goalSet = xpItemsetCreate(parser);
     addRuleToItemset(goalSet, xpItemNull, goal, true);
@@ -508,5 +505,5 @@ xyAGTable xpBuildAGTable(xyParser parser) {
     addEOFTokenToLookaheads(goal);
     computeLookaheadSets(parser);
     xpPrintParser(parser);
-    return buildAGTable(parser);
+    buildParserActionGotoTable(parser);
 }

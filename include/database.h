@@ -18,7 +18,7 @@ static inline char *xyMtokenGetName(xyMtoken mtoken) {return utSymGetName(xyMtok
 char *xyValueTypeGetName(xyValueType type);
 
 // Debugging
-void xyPrintAGTable(xyAGTable agtable);
+void xyPrintParser(xyParser parser);
 
 // Globals
 extern xyRoot xyTheRoot;

@@ -1,0 +1,29 @@
+module Parse pa
+
+enum TokenType PA_TOK_
+    INTEGER
+    FLOAT
+    STRING
+    CHAR
+    IDENT
+    OPERATOR
+    COMMENT
+    KEYWORD
+    NEWLINE
+    BEGIN
+    END
+
+import Database
+
+class Mtoken:xy
+
+class Token
+    TokenType type
+    array uint8 text
+    uint32 lineNum
+    union type
+        uint64 intVal: INTEGER
+        double floatVal: FLOAT
+        Mtoken keywordVal: KEYWORD OPERATOR
+
+relationship Mtoken Token doubly_linked mandatory

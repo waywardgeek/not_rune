@@ -59,9 +59,6 @@ enum ActionType XY_
 
 class Parser
 
-// Action Goto Table
-class AGTable
-
 class Mtoken
     MtokenType type
     sym Sym
@@ -77,6 +74,5 @@ class Action
 
 relationship Root Parser hashed mandatory
 relationship Parser Mtoken hashed Type Sym mandatory
-relationship Parser AGTable mandatory
-relationship AGTable State array mandatory
+relationship Parser State array mandatory
 relationship State Action hashed mtoken mandatory

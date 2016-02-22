@@ -2,16 +2,16 @@
 
 // Print the state.
 void xyPrintState(xyState state) {
-    printf("state %u", xyStateGetAGTableIndex(state));
+    printf("state %u", xyStateGetParserIndex(state));
     xyAction action;
     xyForeachStateAction(state, action) {
         printf(" %s:", xyMtokenGetName(xyActionGetMtoken(action)));
         switch(xyActionGetType(action)) {
         case XY_GOTO:
-            printf("g%u", xyStateGetAGTableIndex(xyActionGetDestState(action)));
+            printf("g%u", xyStateGetParserIndex(xyActionGetDestState(action)));
             break;
         case XY_SHIFT:
-            printf("s%u", xyStateGetAGTableIndex(xyActionGetDestState(action)));
+            printf("s%u", xyStateGetParserIndex(xyActionGetDestState(action)));
             break;
         case XY_REDUCE:
             printf("r%u/%s", xyActionGetStatesToPop(action),
@@ -27,11 +27,11 @@ void xyPrintState(xyState state) {
     putchar('\n');
 }
 
-// Print out the xyAGTable.
-void xyPrintAGTable(xyAGTable agtable) {
-    printf("ActionGoto Table\n");
+// Print out the xyParser.
+void xyPrintParser(xyParser parser) {
+    printf("Parser Action/GOTO Table\n");
     xyState state;
-    xyForeachAGTableState(agtable, state) {
+    xyForeachParserState(parser, state) {
         xyPrintState(state);
-    } xyEndAGTableState;
+    } xyEndParserState;
 }

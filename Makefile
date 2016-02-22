@@ -19,8 +19,10 @@ database/string.c \
 database/mtoken.c \
 database/value.c \
 database/xydatabase.c \
+parse/lexer.c \
 parse/padatabase.c \
 parse/parse.c \
+parse/utf8.c \
 parsegen/itemset.c \
 parsegen/parse.c \
 parsegen/xpdatabase.c \
