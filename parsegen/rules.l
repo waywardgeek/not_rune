@@ -66,19 +66,23 @@ static void noDebug(char *foo, ...) {}
 <INITIAL>[ \t]+                 ;
 <INITIAL>\n                     { xpLineNum++; }
 
-<INITIAL>INTEGER                { myToken(INT); }
-<INITIAL>FLOAT                  { myToken(FLOAT); }
-<INITIAL>BOOL                   { myToken(BOOL); }
-<INITIAL>STRING                 { myToken(STRING); }
-<INITIAL>IDENT                  { myToken(IDENT); }
-<INITIAL>NEWLINE                { myToken(NEWLINE); }
-<INITIAL>ignore_newlines        { myToken(IGNORE_NEWLINES); }
-<INITIAL>"::"                   { myToken(DOUBLE_COLON); }
+<INITIAL>INTEGER                { myToken(KWINTEGER); }
+<INITIAL>FLOAT                  { myToken(KWFLOAT); }
+<INITIAL>BOOL                   { myToken(KWBOOL); }
+<INITIAL>STRING                 { myToken(KWSTRING); }
+<INITIAL>IDENT                  { myToken(KWIDENT); }
+<INITIAL>NEWLINE                { myToken(KWNEWLINE); }
+<INITIAL>ignore_newlines        { myToken(KWIGNORE_NEWLINES); }
+<INITIAL>"::"                   { myToken(KWDOUBLE_COLON); }
+<INITIAL>"->"                   { myToken(KWARROW); }
 
 <INITIAL>\"([^"]|\\.)*\"        { myDebug("KEYWORD %s\n", xptext);
                                   xplval.symVal = utSymCreate(unmunge(xptext));
                                   return KEYWORD; }
-<INITIAL>[a-zA-Z0-9_]+          { myDebug("NONTERM %s\n", xptext);
+<INITIAL>[0-9]+                 { xplval.intVal = atol(xptext);
+                                  myDebug("INTEGER %u\n", xplval.intVal);
+                                  return INTEGER; }
+<INITIAL>[a-zA-Z_][a-zA-Z0-9_]* { myDebug("NONTERM %s\n", xptext);
                                   xplval.symVal = utSymCreate(xptext);
                                   return NONTERM; }
 <INITIAL>.                      { myDebug("Char '%c'\n", xptext[0]);

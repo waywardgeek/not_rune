@@ -20,7 +20,7 @@ static xyAction createAction(xyActionType type, xyState state, xyMtoken mtoken) 
     xyAction action = xyStateFindAction(state, mtoken);
     if(action != xyActionNull) {
         reportConflict(type, action);
-        return action;
+        return xyActionNull;
     }
     action = xyActionAlloc();
     xyActionSetType(action, type);
@@ -32,6 +32,9 @@ static xyAction createAction(xyActionType type, xyState state, xyMtoken mtoken) 
 // Create a GOTO action.
 xyAction xyGotoActionCreate(xyState state, xyMtoken mtoken, xyState destState) {
     xyAction action = createAction(XY_GOTO, state, mtoken);
+    if(action == xyActionNull) {
+        return xyActionNull;
+    }
     xyActionSetDestState(action, destState);
     return action;
 }
@@ -39,6 +42,9 @@ xyAction xyGotoActionCreate(xyState state, xyMtoken mtoken, xyState destState) {
 // Create a SHIFT action.
 xyAction xyShiftActionCreate(xyState state, xyMtoken mtoken, xyState destState) {
     xyAction action = createAction(XY_SHIFT, state, mtoken);
+    if(action == xyActionNull) {
+        return xyActionNull;
+    }
     xyActionSetDestState(action, destState);
     return action;
 }
@@ -46,6 +52,9 @@ xyAction xyShiftActionCreate(xyState state, xyMtoken mtoken, xyState destState) 
 // Create a REDUCE action.
 xyAction xyReduceActionCreate(xyState state, xyMtoken mtoken, xyMtoken reduceMtoken, uint32 statesToPop) {
     xyAction action = createAction(XY_REDUCE, state, mtoken);
+    if(action == xyActionNull) {
+        return xyActionNull;
+    }
     xyActionSetReduceMtoken(action, reduceMtoken);
     xyActionSetStatesToPop(action, statesToPop);
     return action;
@@ -53,6 +62,5 @@ xyAction xyReduceActionCreate(xyState state, xyMtoken mtoken, xyMtoken reduceMto
 
 // Create an ACCEPT action.
 xyAction xyAcceptActionCreate(xyState state, xyMtoken mtoken) {
-    xyAction action = createAction(XY_ACCEPT, state, mtoken);
-    return action;
+    return createAction(XY_ACCEPT, state, mtoken);
 }

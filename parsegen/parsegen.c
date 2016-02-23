@@ -92,7 +92,9 @@ xyParser xpParseGrammar(char *fileName) {
         xyDatabaseStop();
         return xyParserNull;
     }
-    xpBuildParserActionGotoTable(xpCurrentParser);
+    if(!xpBuildParserActionGotoTable(xpCurrentParser)) {
+        utExit("Exiting due to syntax conflicts");
+    }
     xyPrintParser(xpCurrentParser);
     xpDatabaseStop();
     return xpCurrentParser;

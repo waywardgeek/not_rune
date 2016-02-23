@@ -1,7 +1,22 @@
-goal: statements;
-statements: | statement NEWLINE;
-statement: list;
-list: "(" values ")" :: ignore_newlines;
-values: | values value;
-value: list | IDENT | INTEGER | FLOAT | BOOL | STRING | operator;
-operator: "+" | "-" | "*" | "/" | "%" | "==" | "!=" | ">" | "<" | ">=" | "<=" | "!" | "&&" | "||" | "~" | "&" | "|" | "^" | "<<" | ">>";
+goal: statements
+;
+
+statements: -> ()
+| statements statement NEWLINE -> $1.$2
+;
+
+statement: list
+;
+
+list: "(" values ")" :: ignore_newlines -> $2
+;
+
+values: -> ()
+| values value -> $1.$2
+;
+
+value: list | IDENT | INTEGER | FLOAT | BOOL | STRING | operator
+;
+
+operator: "+" | "-" | "*" | "/" | "%" | "==" | "!=" | ">" | "<" | ">=" | "<=" | "!" | "&&" | "||" | "~" | "&" | "|" | "^" | "<<" | ">>"
+;

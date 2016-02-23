@@ -449,16 +449,17 @@ static void computeLookaheadSets(xyParser parser) {
 }
 
 // Build actions for the state from the itemset.
-static void buildStateActions(xyState state) {
+static bool buildStateActions(xyState state) {
+    bool passed = true;
     xpItemset itemset = xpStateGetItemset(state);
     xpTransition transition;
     xpForeachItemsetOutTransition(itemset, transition) {
         xyState destState = xpItemsetGetState(xpTransitionGetToItemset(transition));
         xyMtoken mtoken = xpTransitionGetMtoken(transition);
         if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM) {
-            xyGotoActionCreate(state, mtoken, destState);
+            passed &= xyGotoActionCreate(state, mtoken, destState) != xyActionNull;
         } else {
-            xyShiftActionCreate(state, mtoken, destState);
+            passed &= xyShiftActionCreate(state, mtoken, destState) != xyActionNull;
         }
     } xpEndItemsetOutTransition;
     xyParser parser = xpItemsetGetParser(itemset);
@@ -473,17 +474,18 @@ static void buildStateActions(xyState state) {
             xpForeachTsetTentry(xpItemGetLookaheadTset(item), tentry) {
                 xyMtoken mtoken = xpTentryGetMtoken(tentry);
                 if(rule != xpParserGetFirstRule(parser)) {
-                    xyReduceActionCreate(state, mtoken, reduceMtoken, numTokens);
+                    passed &= xyReduceActionCreate(state, mtoken, reduceMtoken, numTokens) != xyActionNull;
                 } else {
-                    xyAcceptActionCreate(state, mtoken);
+                    passed &= xyAcceptActionCreate(state, mtoken) != xyActionNull;
                 }
             } xpEndTsetTentry;
         }
     } xpEndItemsetItem;
+    return passed;
 }
 
 // Build an Parser from the itemsets.
-static void buildParserActionGotoTable(xyParser parser) {
+static bool buildParserActionGotoTable(xyParser parser) {
     xpItemset itemset;
     xpForeachParserItemset(parser, itemset) {
         xyState state = xyStateAlloc();
@@ -491,14 +493,16 @@ static void buildParserActionGotoTable(xyParser parser) {
         xpItemsetInsertState(itemset, state);
         xyParserAppendState(parser, state);
     } xpEndParserItemset;
+    bool passed = true;
     xyState state;
     xyForeachParserState(parser, state) {
-        buildStateActions(state);
+        passed = buildStateActions(state);
     } xyEndParserState;
+    return passed;
 }
 
-// Build all the item sets.
-void xpBuildParserActionGotoTable(xyParser parser) {
+// Build all the item sets.  Return true if there are no shift/reduce or reduce/reduce errors.
+bool xpBuildParserActionGotoTable(xyParser parser) {
     xpRule goal = xpParserGetFirstRule(parser);
     xpItemset goalSet = xpItemsetCreate(parser, false);
     addRuleToItemset(goalSet, xpItemNull, goal, true);
@@ -507,5 +511,5 @@ void xpBuildParserActionGotoTable(xyParser parser) {
     addEOFTokenToLookaheads(goal);
     computeLookaheadSets(parser);
     xpPrintParser(parser);
-    buildParserActionGotoTable(parser);
+    return buildParserActionGotoTable(parser);
 }

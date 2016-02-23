@@ -25,11 +25,13 @@ void xperror(
 
 %union {
     utSym symVal;
+    uint64 intVal;
 };
 
 %token <symVal> NONTERM KEYWORD
+%token <intVal> INTEGER
 
-%token INT FLOAT BOOL STRING IDENT NEWLINE IGNORE_NEWLINES DOUBLE_COLON
+%token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWIGNORE_NEWLINES KWDOUBLE_COLON KWARROW
 
 %%
 
@@ -58,24 +60,10 @@ productions: firstProduction
 | productions production
 ;
 
-firstProduction: tokens optModifiers
+firstProduction: productionBody
 ;
 
-production: productionHeader tokens optModifiers
-;
-
-optModifiers: /* Empty */
-| DOUBLE_COLON modifiers
-;
-
-modifiers: /* Empty */
-| modifiers modifier
-;
-
-modifier: IGNORE_NEWLINES
-{
-    xpProductionSetIgnoreNewlines(xpCurrentProduction, true);
-}
+production: productionHeader productionBody
 ;
 
 productionHeader: '|'
@@ -84,31 +72,70 @@ productionHeader: '|'
     xpRuleAppendProduction(xpCurrentRule, xpCurrentProduction);
 }
 
+productionBody: tokens optModifiers optMapping
+;
+
+optModifiers: // Empty
+| KWDOUBLE_COLON modifiers
+;
+
+modifiers: /* Empty */
+| modifiers modifier
+;
+
+modifier: KWIGNORE_NEWLINES
+{
+    xpProductionSetIgnoreNewlines(xpCurrentProduction, true);
+}
+;
+
+optMapping: // Empty
+| KWARROW mapping
+;
+
+mapping: concatExpr
+;
+
+concatExprs: // Empty
+| concatExprs concatExpr
+;
+
+concatExpr: valueExpr
+| concatExpr '.' valueExpr
+;
+
+valueExpr: '$' INTEGER
+| list
+;
+
+list: '(' concatExprs ')'
+;
+
 tokens: // Empty
 | tokens token
 ;
 
-token: INT
+token: KWINTEGER
 {
     xpTokenCreate(xpCurrentProduction, XY_TOK_INTEGER, utSymNull);
 }
-| FLOAT
+| KWFLOAT
 {
     xpTokenCreate(xpCurrentProduction, XY_TOK_FLOAT, utSymNull);
 }
-| BOOL
+| KWBOOL
 {
     xpTokenCreate(xpCurrentProduction, XY_TOK_BOOL, utSymNull);
 }
-| STRING
+| KWSTRING
 {
     xpTokenCreate(xpCurrentProduction, XY_TOK_STRING, utSymNull);
 }
-| IDENT
+| KWIDENT
 {
     xpTokenCreate(xpCurrentProduction, XY_TOK_IDENT, utSymNull);
 }
-| NEWLINE
+| KWNEWLINE
 {
     xpTokenCreate(xpCurrentProduction, XY_TOK_NEWLINE, utSymNull);
 }
