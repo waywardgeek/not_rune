@@ -15,6 +15,7 @@ static uint8 *paText;
 static size_t paTextSize, paTextPos;
 static bool paLastWasNewline;
 static bool paEnding;
+static uint32 paParenDepth, paBracketDepth;
 
 // Print out an error message and exit.
 void paError(paToken token, char *message, ...) {
@@ -35,6 +36,8 @@ void paLexerStart(xyParser parser) {
     paText = (uint8 *)calloc(paTextSize, sizeof(uint8));
     paLastWasNewline = true;
     paEnding = false;
+    paParenDepth = 0;
+    paBracketDepth = 0;
 }
 
 // Stop the lexer.
@@ -396,7 +399,7 @@ static void skipBlankLines(void) {
 }
 
 // Parse a single token.
-paToken paLex(bool ignoreNewlines) {
+paToken paLex(void) {
     if(paEnding) {
         return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
     }
@@ -409,10 +412,22 @@ paToken paLex(bool ignoreNewlines) {
     token = lexRawToken();
     type = paTokenGetType(token);
     // Eat newlines inside grouping operators
-    while(ignoreNewlines && type == XY_TOK_NEWLINE) {
+    while(type == XY_TOK_NEWLINE && (paParenDepth > 0 || paBracketDepth > 0)) {
         paTokenDestroy(token);
         token = lexRawToken();
         type = paTokenGetType(token);
+    }
+    char *text = (char *)paTokenGetText(token);
+    if(type == XY_TOK_KEYWORD) {
+        if(!strcmp(text, "(")) {
+            paParenDepth++;
+        } else if(!strcmp(text, "[")) {
+            paBracketDepth++;
+        } else if(!strcmp(text, ")")) {
+            paParenDepth--;
+        } else if(!strcmp(text, "]")) {
+            paBracketDepth--;
+        }
     }
     // Add newline to end of file if missing
     if(type == XY_TOK_EOF && !hadNewline) {
@@ -420,6 +435,5 @@ paToken paLex(bool ignoreNewlines) {
         return paTokenCreate(XY_TOK_NEWLINE, (uint8 *)"\n");
     }
     paLastWasNewline = type == XY_TOK_NEWLINE;
-    paPrintToken(token);
     return token;
 }

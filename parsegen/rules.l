@@ -72,7 +72,6 @@ static void noDebug(char *foo, ...) {}
 <INITIAL>STRING                 { myToken(KWSTRING); }
 <INITIAL>IDENT                  { myToken(KWIDENT); }
 <INITIAL>NEWLINE                { myToken(KWNEWLINE); }
-<INITIAL>ignore_newlines        { myToken(KWIGNORE_NEWLINES); }
 <INITIAL>"::"                   { myToken(KWDOUBLE_COLON); }
 <INITIAL>"->"                   { myToken(KWARROW); }
 

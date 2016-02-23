@@ -6,7 +6,7 @@
 // Parsing stuff
 void paLexerStart(xyParser parser);
 void paLexerStop(void);
-paToken paLex(bool ignoreNewlines);
+paToken paLex(void);
 void paPrintToken(paToken token);
 void paError(paToken token, char *message, ...);
 

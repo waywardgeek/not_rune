@@ -8,7 +8,7 @@ statements: -> ()
 statement: list
 ;
 
-list: "(" values ")" :: ignore_newlines -> $2
+list: "(" values ")" -> $2
 ;
 
 values: -> ()

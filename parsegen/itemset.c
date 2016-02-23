@@ -61,7 +61,8 @@ void xpPrintItem(xpItem item) {
 
 // Print the itemset.
 void xpPrintItemset(xpItemset itemset) {
-    printf("Itemset %u\n", xpItemset2Index(itemset));
+    printf("Itemset %u", xpItemset2Index(itemset));
+    putchar('\n');
     xpItem item;
     xpForeachItemsetItem(itemset, item) {
         printf("    ");
@@ -70,9 +71,8 @@ void xpPrintItemset(xpItemset itemset) {
 }
 
 // Create a new itemset.
-xpItemset xpItemsetCreate(xyParser parser, bool ignoreNewlines) {
+xpItemset xpItemsetCreate(xyParser parser) {
     xpItemset itemset = xpItemsetAlloc();
-    xpItemsetSetIgnoreNewlines(itemset, ignoreNewlines);
     xpParserAppendItemset(parser, itemset);
     return itemset;
 }
@@ -198,7 +198,7 @@ static void buildNewItemsetsFromItemset(xyParser parser, xpItemset itemset) {
             if(transition == xpTransitionNull) {
                 //printf("New itemset for ");
                 //xpPrintItem(item);
-                destItemset = xpItemsetCreate(parser, xpProductionIgnoreNewlines(production));
+                destItemset = xpItemsetCreate(parser);
                 transition = xpTransitionCreate(mtoken, itemset, destItemset);
             } else {
                 //printf("Found existing itemset for ");
@@ -491,7 +491,6 @@ static bool buildParserActionGotoTable(xyParser parser) {
     xpItemset itemset;
     xpForeachParserItemset(parser, itemset) {
         xyState state = xyStateAlloc();
-        xyStateSetIgnoreNewlines(state, xpItemsetIgnoreNewlines(itemset));
         xpItemsetInsertState(itemset, state);
         xyParserAppendState(parser, state);
     } xpEndParserItemset;
@@ -506,7 +505,7 @@ static bool buildParserActionGotoTable(xyParser parser) {
 // Build all the item sets.  Return true if there are no shift/reduce or reduce/reduce errors.
 bool xpBuildParserActionGotoTable(xyParser parser) {
     xpRule goal = xpParserGetFirstRule(parser);
-    xpItemset goalSet = xpItemsetCreate(parser, false);
+    xpItemset goalSet = xpItemsetCreate(parser);
     addRuleToItemset(goalSet, xpItemNull, goal, true);
     computeLR0Sets(parser);
     computeFirstTsets(parser);

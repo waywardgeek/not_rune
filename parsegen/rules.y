@@ -34,7 +34,7 @@ void xperror(
 
 %type <mapVal> map concatExpr concatExprs valueExpr listExpr
 
-%token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWIGNORE_NEWLINES KWDOUBLE_COLON KWARROW
+%token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWDOUBLE_COLON KWARROW
 
 %%
 
@@ -75,21 +75,7 @@ productionHeader: '|'
     xpRuleAppendProduction(xpCurrentRule, xpCurrentProduction);
 }
 
-productionBody: tokens optModifiers optMap
-;
-
-optModifiers: // Empty
-| KWDOUBLE_COLON modifiers
-;
-
-modifiers: /* Empty */
-| modifiers modifier
-;
-
-modifier: KWIGNORE_NEWLINES
-{
-    xpProductionSetIgnoreNewlines(xpCurrentProduction, true);
-}
+productionBody: tokens optMap
 ;
 
 optMap: // Empty

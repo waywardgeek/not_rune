@@ -168,9 +168,10 @@ static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, pa
 // Parse input tokens util we accept, or find an error.
 static xyValue parseUntilAccept(xyParser parser, xyStateArray states, xyValueArray values) {
     xyState state = top(states);
-    paToken token = paLex(xyStateIgnoreNewlines(state));
+    paToken token = paLex();
     xyValue value = buildTokenValue(token);
     while(true) {
+        paPrintToken(token);
         printStack(states, values);
         xyMtoken mtoken = paTokenGetMtoken(token);
         xyAction action = xyStateFindAction(state, mtoken);
@@ -186,7 +187,7 @@ static xyValue parseUntilAccept(xyParser parser, xyStateArray states, xyValueArr
             return xyValueArrayGetiValue(values, 1);
         case XY_SHIFT:
             state = push(states, values, xyActionGetDestState(action), value);
-            token = paLex(xyStateIgnoreNewlines(state));
+            token = paLex();
             value = buildTokenValue(token);
             break;
         case XY_REDUCE:
