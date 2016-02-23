@@ -3,6 +3,8 @@
 FILE *paFile;
 uint32 paLineNum;
 
+static utSym paEOFSym, paNEWLINESym;
+
 // Print out the stack.
 static void printStack(xyStateArray states, xyValueArray values) {
     putchar('[');
@@ -15,15 +17,20 @@ static void printStack(xyStateArray states, xyValueArray values) {
         firstTime = false;
         printf("%u", xyStateGetParserIndex(state));
     } xyEndStateArrayState;
-    printf(" [");
-    xyValue value;
-    xyForeachValueArrayValue(values, value) {
+    printf("] [");
+    firstTime = true;
+    for(uint32 i = 0; i < xyValueArrayGetUsedValue(values); i++) {
+        xyValue value = xyValueArrayGetiValue(values, i);
         if(!firstTime) {
             putchar(' ');
         }
         firstTime = false;
-        xyPrintValue(value);
-    } xyEndStateArrayState;
+        if(value == xyValueNull) {
+            printf("null");
+        } else {
+            xyPrintValue(value);
+        }
+    }
     printf("]\n");
 }
 
@@ -46,6 +53,10 @@ static xyValue buildTokenValue(paToken token) {
     case XY_TOK_IDENT:
         sym = utSymCreate((char *)paTokenGetText(token));
         return xySymValueCreate(sym);
+    case XY_TOK_NEWLINE:
+        return xySymValueCreate(paNEWLINESym);
+    case XY_TOK_EOF:
+        return xySymValueCreate(paEOFSym);
     // TODO: Do we need any of these
     case XY_TOK_CHAR:
     case XY_TOK_OPERATOR:
@@ -86,10 +97,12 @@ static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, pa
 
 // Execute a concatenation map.
 static xyValue executeConcatMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
-    xyValue leftValue = executeMap(xyMapGetFirstMap(map), values, statesToPop, token);
-    xyValue rightValue = executeMap(xyMapGetNextMapMap(map), values, statesToPop, token);
+    xyMap leftMap = xyMapGetFirstMap(map);
+    xyMap rightMap = xyMapGetNextMapMap(leftMap);
+    xyValue leftValue = executeMap(leftMap, values, statesToPop, token);
+    xyValue rightValue = executeMap(rightMap, values, statesToPop, token);
     if(xyValueGetType(leftValue) != XY_LIST) {
-        paError(token, "Expected list value");
+        paError(token, "Expected list value in concat map");
     }
     xyListAppendValue(xyValueGetListVal(leftValue), rightValue);
     return leftValue;
@@ -110,20 +123,26 @@ static xyValue executeListMap(xyMap map, xyValueArray values, uint32 statesToPop
 static xyValue executeValueMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
     uint32 start = xyValueArrayGetUsedValue(values) - statesToPop;
     xyValue value = xyValueArrayGetiValue(values,  start + xyMapGetPosition(map));
-    xyValueArraySetiValue(values, xyMapGetPosition(map), xyValueNull);
+    xyValueArraySetiValue(values, start + xyMapGetPosition(map), xyValueNull);
     return value;
 }
 
 // Execute a default map, by just putting all the values in a list.
 static xyValue executeDefaultMap(xyValueArray values, uint32 statesToPop, paToken token) {
-    xyList list = xyListAlloc();
     uint32 start = xyValueArrayGetUsedValue(values) - statesToPop;
+    if(statesToPop == 1) {
+        xyValue value = xyValueArrayGetiValue(values, start);
+        xyValueArraySetiValue(values, start, xyValueNull);
+        return value;
+    }
+    xyList list = xyListAlloc();
     for(uint32 i = 0; i < statesToPop; i++) {
         xyValue value = xyValueArrayGetiValue(values, start + i);
-        if(value != xyValueNull) {
-            xyListAppendValue(list, value);
-            xyValueArraySetiValue(values, start + i, xyValueNull);
+        if(value == xyValueNull) {
+            paError(token, "Used value twice in map");
         }
+        xyValueArraySetiValue(values, start + i, xyValueNull);
+        xyListAppendValue(list, value);
     }
     return xyListValueCreate(list);
 }
@@ -131,7 +150,7 @@ static xyValue executeDefaultMap(xyValueArray values, uint32 statesToPop, paToke
 // Execute a map expression to combinethe values on the top of the stack.
 static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
     if(map == xyMapNull) {
-        executeDefaultMap(values, statesToPop, token);
+        return executeDefaultMap(values, statesToPop, token);
     }
     switch(xyMapGetType(map)) {
     case XY_MAP_CONCAT:
@@ -164,8 +183,7 @@ static xyValue parseUntilAccept(xyParser parser, xyStateArray states, xyValueArr
         uint32 statesToPop;
         switch(xyActionGetType(action)) {
         case XY_ACCEPT:
-            statesToPop = xyActionGetStatesToPop(action);
-            return executeMap(xyActionGetMap(action), values, statesToPop, token);
+            return xyValueArrayGetiValue(values, 1);
         case XY_SHIFT:
             state = push(states, values, xyActionGetDestState(action), value);
             token = paLex(xyStateIgnoreNewlines(state));
@@ -179,7 +197,8 @@ static xyValue parseUntilAccept(xyParser parser, xyStateArray states, xyValueArr
             pop(states, values, statesToPop);
             state = top(states);
             gotoAction = xyStateFindAction(state, reduceMtoken);
-            push(states, values, xyActionGetDestState(gotoAction), reducedValue);
+            state = xyActionGetDestState(gotoAction);
+            push(states, values, state, reducedValue);
             break;
         default:
             utExit("Unknown action type");
@@ -192,6 +211,8 @@ xyValue paParse(FILE *file, xyParser parser) {
     paFile = file;
     paDatabaseStart();
     utf8Start();
+    paNEWLINESym = utSymCreate("NEWLINE");
+    paEOFSym = utSymCreate("EOF");
     paLexerStart(parser);
     xyStateArray states = xyStateArrayAlloc();
     xyValueArray values = xyValueArrayAlloc();

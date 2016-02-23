@@ -104,7 +104,7 @@ map: concatExpr
 
 concatExprs: // Empty
 {
-    $$ = xyMapCreate(XY_MAP_LIST);
+    $$ = xyMapCreate(xpCurrentParser, XY_MAP_LIST);
 }
 | concatExprs concatExpr
 {
@@ -116,7 +116,7 @@ concatExprs: // Empty
 concatExpr: valueExpr
 | concatExpr '.' valueExpr
 {
-    $$ = xyMapCreate(XY_MAP_CONCAT);
+    $$ = xyMapCreate(xpCurrentParser, XY_MAP_CONCAT);
     xyMapAppendMap($$, $1);
     xyMapAppendMap($$, $3);
 }
@@ -124,8 +124,11 @@ concatExpr: valueExpr
 
 valueExpr: '$' INTEGER
 {
-    $$ = xyMapCreate(XY_MAP_VALUE);
-    xyMapSetPosition($$, $2);
+    if($2 < 1 || $2 > xpProductionGetUsedToken(xpCurrentProduction)) {
+        xperror("$%u is out of range", $2);
+    }
+    $$ = xyMapCreate(xpCurrentParser, XY_MAP_VALUE);
+    xyMapSetPosition($$, $2 - 1);
 }
 | listExpr
 ;

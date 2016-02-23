@@ -46,9 +46,10 @@ void xyPrintMap(xyMap map) {
 }
 
 // Make a map object.
-xyMap xyMapCreate(xyMapType type) {
+xyMap xyMapCreate(xyParser parser, xyMapType type) {
     xyMap map = xyMapAlloc();
     xyMapSetType(map, type);
+    xyParserAppendMap(parser, map);
     return map;
 }
 

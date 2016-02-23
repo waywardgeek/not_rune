@@ -94,6 +94,7 @@ class Map
 relationship Root Parser hashed mandatory
 relationship Parser Mtoken hashed Type Sym mandatory
 relationship Parser State array mandatory
+relationship Parser Map doubly_linked mandatory
 relationship State Action hashed mtoken mandatory
-relationship Action Map cascade
+relationship Map Action doubly_linked
 relationship Map Map doubly_linked cascade

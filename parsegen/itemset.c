@@ -471,10 +471,12 @@ static bool buildStateActions(xyState state) {
         if(xpItemGetDotPosition(item) == numTokens) {
             xpTentry tentry;
             xyMtoken reduceMtoken = xpRuleGetMtoken(rule);
+            xyMap map = xpProductionGetMap(production);
             xpForeachTsetTentry(xpItemGetLookaheadTset(item), tentry) {
                 xyMtoken mtoken = xpTentryGetMtoken(tentry);
                 if(rule != xpParserGetFirstRule(parser)) {
-                    passed &= xyReduceActionCreate(state, mtoken, reduceMtoken, numTokens) != xyActionNull;
+                    passed &= xyReduceActionCreate(state, mtoken, reduceMtoken, numTokens, map) !=
+                        xyActionNull;
                 } else {
                     passed &= xyAcceptActionCreate(state, mtoken) != xyActionNull;
                 }

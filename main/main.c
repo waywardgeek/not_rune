@@ -18,7 +18,10 @@ int main(int argc, char **argv) {
         printf("Unable to read file %s\n", argv[2]);
         return 1;
     }
-    paParse(file, parser);
+    xyValue value = paParse(file, parser);
+    printf("Result:\n");
+    xyPrintValue(value);
+    putchar('\n');
     xyDatabaseStop();
     utStop(false);
     return 0;

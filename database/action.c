@@ -50,13 +50,17 @@ xyAction xyShiftActionCreate(xyState state, xyMtoken mtoken, xyState destState) 
 }
 
 // Create a REDUCE action.
-xyAction xyReduceActionCreate(xyState state, xyMtoken mtoken, xyMtoken reduceMtoken, uint32 statesToPop) {
+xyAction xyReduceActionCreate(xyState state, xyMtoken mtoken, xyMtoken reduceMtoken,
+        uint32 statesToPop, xyMap map) {
     xyAction action = createAction(XY_REDUCE, state, mtoken);
     if(action == xyActionNull) {
         return xyActionNull;
     }
     xyActionSetReduceMtoken(action, reduceMtoken);
     xyActionSetStatesToPop(action, statesToPop);
+    if(map != xyMapNull) {
+        xyMapAppendAction(map, action);
+    }
     return action;
 }
 

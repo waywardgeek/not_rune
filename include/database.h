@@ -7,7 +7,8 @@ xyString xyStringCreate(uint8 *text);
 xyParser xyParserCreate(utSym sym);
 xyAction xyGotoActionCreate(xyState state, xyMtoken mtoken, xyState destState);
 xyAction xyShiftActionCreate(xyState state, xyMtoken mtoken, xyState destState);
-xyAction xyReduceActionCreate(xyState state, xyMtoken mtoken, xyMtoken reduceMtoken, uint32 statesToPop);
+xyAction xyReduceActionCreate(xyState state, xyMtoken mtoken, xyMtoken reduceMtoken,
+    uint32 statesToPop, xyMap map);
 xyAction xyAcceptActionCreate(xyState state, xyMtoken mtoken);
 void xyPrintParser(xyParser parser);
 
@@ -28,7 +29,7 @@ void xyPrintValue(xyValue value);
 void xyPrintList(xyList list);
 
 // Map
-xyMap xyMapCreate(xyMapType type);
+xyMap xyMapCreate(xyParser parser, xyMapType type);
 void xyPrintMap(xyMap map);
 
 // State
