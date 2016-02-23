@@ -9,7 +9,7 @@ class Token
     array uint8 text
     uint32 lineNum
     union type
-        uint64 intVal: INTEGER
+        uint64 intVal: INT
         double floatVal: FLOAT
         Mtoken keywordVal: KEYWORD OPERATOR
 

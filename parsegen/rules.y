@@ -142,7 +142,7 @@ tokens: // Empty
 
 token: KWINTEGER
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_INTEGER, utSymNull);
+    xpTokenCreate(xpCurrentProduction, XY_TOK_INT, utSymNull);
 }
 | KWFLOAT
 {

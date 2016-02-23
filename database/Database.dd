@@ -26,7 +26,7 @@ class Namespace
 class String
     array uint8 text
 
-class Value
+class Value array
     ValueType type
     union type
         int64 intVal: INT
@@ -49,7 +49,7 @@ schema Parse
 enum MtokenType XY_TOK_
     NONTERM
     KEYWORD
-    INTEGER
+    INT
     BOOL
     FLOAT
     STRING
@@ -89,8 +89,7 @@ class Action
 
 class Map
     MapType type
-    union type
-        uint32 position: VALUE
+    uint32 position
 
 relationship Root Parser hashed mandatory
 relationship Parser Mtoken hashed Type Sym mandatory

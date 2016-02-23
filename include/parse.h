@@ -1,1 +1,1 @@
-bool paParse(FILE *file, xyParser parser);
+xyValue paParse(FILE *file, xyParser parser);

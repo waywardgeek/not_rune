@@ -14,9 +14,10 @@ SOURCE= \
 main/main.c \
 database/action.c \
 database/debugging.c \
+database/list.c \
+database/mtoken.c \
 database/parser.c \
 database/string.c \
-database/mtoken.c \
 database/value.c \
 database/xydatabase.c \
 parse/lexer.c \

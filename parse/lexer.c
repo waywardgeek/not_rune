@@ -45,7 +45,7 @@ void paLexerStop(void) {
 void paPrintToken(paToken token) {
     printf("%-6u ", paTokenGetLineNum(token));
     switch(paTokenGetType(token)) {
-    case XY_TOK_INTEGER:
+    case XY_TOK_INT:
         printf("INTEGER: %llu\n", paTokenGetIntVal(token));
         break;
     case XY_TOK_FLOAT:
@@ -100,7 +100,7 @@ static inline paToken paTokenCreate(xyMtokenType type, uint8 *text) {
 
 // Create a new integer token.
 static inline paToken paIntTokenCreate(uint64 intVal, uint8 *text) {
-    paToken token = paTokenCreate(XY_TOK_INTEGER, text);
+    paToken token = paTokenCreate(XY_TOK_INT, text);
     paTokenSetIntVal(token, intVal);
     return token;
 }

@@ -6,7 +6,7 @@ char *xyMtokenGetName(xyMtoken mtoken) {
     case XY_TOK_NONTERM:
     case XY_TOK_KEYWORD:
         return utSymGetName(xyMtokenGetSym(mtoken));
-    case XY_TOK_INTEGER: return "INTEGER";
+    case XY_TOK_INT: return "INT";
     case XY_TOK_BOOL: return "BOOL";
     case XY_TOK_FLOAT: return "FLOAT";
     case XY_TOK_STRING: return "STRING";

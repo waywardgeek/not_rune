@@ -4,62 +4,165 @@ FILE *paFile;
 uint32 paLineNum;
 
 // Print out the stack.
-static void printStack(xyStateArray stack) {
+static void printStack(xyStateArray states, xyValueArray values) {
     putchar('[');
     bool firstTime = true;
     xyState state;
-    xyForeachStateArrayState(stack, state) {
+    xyForeachStateArrayState(states, state) {
         if(!firstTime) {
             putchar(' ');
         }
         firstTime = false;
         printf("%u", xyStateGetParserIndex(state));
     } xyEndStateArrayState;
+    printf(" [");
+    xyValue value;
+    xyForeachValueArrayValue(values, value) {
+        if(!firstTime) {
+            putchar(' ');
+        }
+        firstTime = false;
+        xyPrintValue(value);
+    } xyEndStateArrayState;
     printf("]\n");
 }
 
+// Build a value from a token.
+static xyValue buildTokenValue(paToken token) {
+    xyMtoken mtoken = paTokenGetMtoken(token);
+    utSym sym = utSymNull;
+    if(mtoken != xyMtokenNull) {
+        sym = xyMtokenGetSym(mtoken);
+    }
+    switch(paTokenGetType(token)) {
+    case XY_TOK_KEYWORD:
+        return xySymValueCreate(sym);
+    case XY_TOK_INT:
+        return xyUintValueCreate(paTokenGetIntVal(token));
+    case XY_TOK_FLOAT:
+        return xyFloatValueCreate(paTokenGetIntVal(token));
+    case XY_TOK_STRING:
+        return xyStringValueCreate(paTokenGetText(token));
+    case XY_TOK_IDENT:
+        sym = utSymCreate((char *)paTokenGetText(token));
+        return xySymValueCreate(sym);
+    // TODO: Do we need any of these
+    case XY_TOK_CHAR:
+    case XY_TOK_OPERATOR:
+    case XY_TOK_BOOL:
+    default:
+        utExit("Unable to convert token to value");
+    }
+    return xyValueNull; // Dummy return;
+}
+
 // Push a state onto the stack.
-static inline void push(xyStateArray stack, xyState state) {
-    xyStateArrayAppendState(stack, state);
+static inline xyState push(xyStateArray states, xyValueArray values, xyState state, xyValue value) {
+    xyStateArrayAppendState(states, state);
+    xyValueArrayAppendValue(values, value);
+    return state;
 }
 
 // Pop statesToPop states off the stack.
-static void pop(xyStateArray stack, uint32 statesToPop) {
-    xyStateArraySetUsedState(stack, xyStateArrayGetUsedState(stack) - statesToPop);
+static void pop(xyStateArray states, xyValueArray values, uint32 statesToPop) {
+    xyStateArraySetUsedState(states, xyStateArrayGetUsedState(states) - statesToPop);
+    uint32 start = xyValueArrayGetUsedValue(values) - statesToPop;
+    for(uint32 i = 0; i < statesToPop; i++) {
+        xyValue value = xyValueArrayGetiValue(values, start + i);
+        if(value != xyValueNull) {
+            xyValueDestroy(value);
+        }
+    }
+    xyValueArraySetUsedValue(values, xyValueArrayGetUsedValue(values) - statesToPop);
 }
 
 // Return the top state on the stack.
-static inline xyState top(xyStateArray stack) {
-    return xyStateArrayGetiState(stack, xyStateArrayGetUsedState(stack) - 1);
+static inline xyState top(xyStateArray states) {
+    return xyStateArrayGetiState(states, xyStateArrayGetUsedState(states) - 1);
+}
+
+// Forward declaration for recursion.
+static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token);
+
+// Execute a concatenation map.
+static xyValue executeConcatMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
+    xyValue leftValue = executeMap(xyMapGetFirstMap(map), values, statesToPop, token);
+    xyValue rightValue = executeMap(xyMapGetNextMapMap(map), values, statesToPop, token);
+    if(xyValueGetType(leftValue) != XY_LIST) {
+        paError(token, "Expected list value");
+    }
+    xyListAppendValue(xyValueGetListVal(leftValue), rightValue);
+    return leftValue;
+}
+
+// Execute a list map.
+static xyValue executeListMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
+    xyList list = xyListAlloc();
+    xyMap child;
+    xyForeachMapMap(map, child) {
+        xyValue value = executeMap(child, values, statesToPop, token);
+        xyListAppendValue(list, value);
+    } xyEndMapMap;
+    return xyListValueCreate(list);
+}
+
+// Execute a value map.
+static xyValue executeValueMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
+    uint32 start = xyValueArrayGetUsedValue(values) - statesToPop;
+    xyValue value = xyValueArrayGetiValue(values,  start + xyMapGetPosition(map));
+    xyValueArraySetiValue(values, xyMapGetPosition(map), xyValueNull);
+    return value;
+}
+
+// Execute a map expression to combinethe values on the top of the stack.
+static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
+    switch(xyMapGetType(map)) {
+    case XY_MAP_CONCAT:
+        return executeConcatMap(map, values, statesToPop, token);
+    case XY_MAP_LIST:
+        return executeListMap(map, values, statesToPop, token);
+    case XY_MAP_VALUE:
+        return executeValueMap(map, values, statesToPop, token);
+    default:
+        utExit("Unknown map type");
+    }
+    return xyValueNull; // Dummy return
 }
 
 // Parse input tokens util we accept, or find an error.
-static void parseUntilAccept(xyParser parser, xyStateArray stack) {
-    xyState state = top(stack);
+static xyValue parseUntilAccept(xyParser parser, xyStateArray states, xyValueArray values) {
+    xyState state = top(states);
     paToken token = paLex(xyStateIgnoreNewlines(state));
+    xyValue value = buildTokenValue(token);
     while(true) {
-        printStack(stack);
-        state = top(stack);
+        printStack(states, values);
         xyMtoken mtoken = paTokenGetMtoken(token);
         xyAction action = xyStateFindAction(state, mtoken);
         if(action == xyActionNull) {
             paError(token, "Syntax error");
         }
         xyMtoken reduceMtoken;
+        xyValue reducedValue;
         xyAction gotoAction;
+        uint32 statesToPop;
         switch(xyActionGetType(action)) {
         case XY_ACCEPT:
-            return;
+            statesToPop = xyActionGetStatesToPop(action);
+            return executeMap(xyActionGetMap(action), values, statesToPop, token);
         case XY_SHIFT:
-            push(stack, xyActionGetDestState(action));
+            state = push(states, values, xyActionGetDestState(action), value);
             token = paLex(xyStateIgnoreNewlines(state));
+            value = buildTokenValue(token);
             break;
         case XY_REDUCE:
             reduceMtoken = xyActionGetReduceMtoken(action);
             printf("Reducing %s\n", xyMtokenGetName(reduceMtoken));
-            pop(stack, xyActionGetStatesToPop(action));
-            gotoAction = xyStateFindAction(top(stack), reduceMtoken);
-            push(stack, xyActionGetDestState(gotoAction));
+            statesToPop = xyActionGetStatesToPop(action);
+            reducedValue = executeMap(xyActionGetMap(action), values, statesToPop, token);
+            pop(states, values, statesToPop);
+            state = top(states);
+            gotoAction = xyStateFindAction(state, reduceMtoken);
+            push(states, values, xyActionGetDestState(gotoAction), reducedValue);
             break;
         default:
             utExit("Unknown action type");
@@ -68,17 +171,19 @@ static void parseUntilAccept(xyParser parser, xyStateArray stack) {
 }
 
 // Parse the input file using the action-goto table.
-bool paParse(FILE *file, xyParser parser) {
+xyValue paParse(FILE *file, xyParser parser) {
     paFile = file;
     paDatabaseStart();
     utf8Start();
     paLexerStart(parser);
-    xyStateArray stack = xyStateArrayAlloc();
-    push(stack, xyParserGetiState(parser, 0));
-    parseUntilAccept(parser, stack);
-    xyStateArrayFree(stack);
+    xyStateArray states = xyStateArrayAlloc();
+    xyValueArray values = xyValueArrayAlloc();
+    push(states, values, xyParserGetiState(parser, 0), xyValueNull);
+    xyValue value = parseUntilAccept(parser, states, values);
+    xyValueArrayFree(values);
+    xyStateArrayFree(states);
     paLexerStop();
     utf8Stop();
     paDatabaseStop();
-    return true;
+    return value;
 }

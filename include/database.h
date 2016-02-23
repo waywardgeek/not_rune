@@ -1,7 +1,7 @@
 #include "xydatabase.h"
 
 // String
-xyString xyStringCreate(uint8 *text, uint32 len);
+xyString xyStringCreate(uint8 *text);
 
 // Parser
 xyParser xyParserCreate(utSym sym);
@@ -13,6 +13,19 @@ xyMap xyMapCreate(xyMapType type);
 
 // Mtoken
 xyMtoken xyMtokenCreate(xyParser parser, xyMtokenType type, utSym sym);
+
+// Value
+xyValue xySymValueCreate(utSym sym);
+xyValue xyIntValueCreate(int64 value);
+xyValue xyUintValueCreate(uint64 value);
+xyValue xyFloatValueCreate(double value);
+xyValue xyStringValueCreate(uint8 *value);
+xyValue xyListValueCreate(xyList list);
+xyValue xyBoolValueCreate(bool value);
+void xyPrintValue(xyValue value);
+
+// List
+void xyPrintList(xyList list);
 
 // Shortcuts
 char *xyMtokenGetName(xyMtoken mtoken);
