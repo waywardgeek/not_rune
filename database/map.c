@@ -3,7 +3,7 @@
 // Print a concat map.
 static void printConcatMap(xyMap map) {
     xyMap left = xyMapGetFirstMap(map);
-    xyMap right = xyMapGetNextMapMap(map);
+    xyMap right = xyMapGetNextMapMap(left);
     xyPrintMap(left);
     putchar('.');
     xyPrintMap(right);
@@ -31,17 +31,24 @@ static void printValueMap(xyMap map) {
 // Print a map object.
 void xyPrintMap(xyMap map) {
     switch(xyMapGetType(map)) {
-    case CONCAT:
+    case XY_MAP_CONCAT:
         printConcatMap(map);
         break;
-    case LIST:
+    case XY_MAP_LIST:
         printListMap(map);
         break;
-    case VALUE:
+    case XY_MAP_VALUE:
         printValueMap(map);
         break;
     default:
         utExit("Unknown map type");
     }
+}
+
+// Make a map object.
+xyMap xyMapCreate(xyMapType type) {
+    xyMap map = xyMapAlloc();
+    xyMapSetType(map, type);
+    return map;
 }
 

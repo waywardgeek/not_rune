@@ -114,8 +114,25 @@ static xyValue executeValueMap(xyMap map, xyValueArray values, uint32 statesToPo
     return value;
 }
 
+// Execute a default map, by just putting all the values in a list.
+static xyValue executeDefaultMap(xyValueArray values, uint32 statesToPop, paToken token) {
+    xyList list = xyListAlloc();
+    uint32 start = xyValueArrayGetUsedValue(values) - statesToPop;
+    for(uint32 i = 0; i < statesToPop; i++) {
+        xyValue value = xyValueArrayGetiValue(values, start + i);
+        if(value != xyValueNull) {
+            xyListAppendValue(list, value);
+            xyValueArraySetiValue(values, start + i, xyValueNull);
+        }
+    }
+    return xyListValueCreate(list);
+}
+
 // Execute a map expression to combinethe values on the top of the stack.
 static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
+    if(map == xyMapNull) {
+        executeDefaultMap(values, statesToPop, token);
+    }
     switch(xyMapGetType(map)) {
     case XY_MAP_CONCAT:
         return executeConcatMap(map, values, statesToPop, token);

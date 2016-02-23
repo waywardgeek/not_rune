@@ -31,6 +31,9 @@ void xyPrintList(xyList list);
 xyMap xyMapCreate(xyMapType type);
 void xyPrintMap(xyMap map);
 
+// State
+void xyPrintState(xyState state);
+
 // Shortcuts
 char *xyMtokenGetName(xyMtoken mtoken);
 char *xyValueTypeGetName(xyValueType type);

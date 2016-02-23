@@ -15,8 +15,10 @@ main/main.c \
 database/action.c \
 database/debugging.c \
 database/list.c \
+database/map.c \
 database/mtoken.c \
 database/parser.c \
+database/state.c \
 database/string.c \
 database/value.c \
 database/xydatabase.c \

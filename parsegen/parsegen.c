@@ -31,6 +31,7 @@ void xpPrintRule(xpRule rule) {
         } xpEndProductionToken;
         xyMap map = xpProductionGetMap(production);
         if(map != xyMapNull) {
+            printf(" -> ");
             xyPrintMap(map);
         }
         putchar('\n');

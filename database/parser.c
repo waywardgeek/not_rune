@@ -1,10 +1,12 @@
 #include "database.h"
 
-// Make a map object.
-xyMap xyMapCreate(xyMapType type) {
-    xyMap map = xyMapAlloc();
-    xyMapSetType(map, type);
-    return map;
+// Print out the xyParser.
+void xyPrintParser(xyParser parser) {
+    printf("Parser Action/GOTO Table\n");
+    xyState state;
+    xyForeachParserState(parser, state) {
+        xyPrintState(state);
+    } xyEndParserState;
 }
 
 // Create a new parser.
