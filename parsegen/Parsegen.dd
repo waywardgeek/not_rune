@@ -2,11 +2,13 @@ module Parsegen xp
 
 import Database
 
-class Parser : xy
+class Parser: xy
 
-class State : xy
+class State: xy
 
-class Mtoken : xy
+class Mtoken: xy
+
+class Map: xy
 
 class Itemset
     bool ignoreNewlines
@@ -41,6 +43,7 @@ relationship Rule Production doubly_linked mandatory
 relationship Rule Mtoken cascade
 relationship Production Item doubly_linked mandatory
 relationship Production Token array mandatory
+relationship Production Map child_only cascade
 relationship Mtoken Token doubly_linked mandatory
 relationship Mtoken Transition doubly_linked mandatory
 relationship Mtoken Tset:First child_only cascade

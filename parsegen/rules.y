@@ -26,10 +26,13 @@ void xperror(
 %union {
     utSym symVal;
     uint64 intVal;
+    xyMap mapVal;
 };
 
 %token <symVal> NONTERM KEYWORD
 %token <intVal> INTEGER
+
+%type <mapVal> map concatExpr concatExprs valueExpr listExpr
 
 %token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWIGNORE_NEWLINES KWDOUBLE_COLON KWARROW
 
@@ -72,7 +75,7 @@ productionHeader: '|'
     xpRuleAppendProduction(xpCurrentRule, xpCurrentProduction);
 }
 
-productionBody: tokens optModifiers optMapping
+productionBody: tokens optModifiers optMap
 ;
 
 optModifiers: // Empty
@@ -89,26 +92,48 @@ modifier: KWIGNORE_NEWLINES
 }
 ;
 
-optMapping: // Empty
-| KWARROW mapping
+optMap: // Empty
+| KWARROW map
+{
+    xpProductionSetMap(xpCurrentProduction, $2);
+}
 ;
 
-mapping: concatExpr
+map: concatExpr
 ;
 
 concatExprs: // Empty
+{
+    $$ = xyMapCreate(XY_MAP_LIST);
+}
 | concatExprs concatExpr
+{
+    $$ = $1;
+    xyMapAppendMap($1, $2);
+}
 ;
 
 concatExpr: valueExpr
 | concatExpr '.' valueExpr
+{
+    $$ = xyMapCreate(XY_MAP_CONCAT);
+    xyMapAppendMap($$, $1);
+    xyMapAppendMap($$, $3);
+}
 ;
 
 valueExpr: '$' INTEGER
-| list
+{
+    $$ = xyMapCreate(XY_MAP_VALUE);
+    xyMapSetPosition($$, $2);
+}
+| listExpr
 ;
 
-list: '(' concatExprs ')'
+listExpr: '(' concatExprs ')'
+{
+    $$ = $2;
+}
 ;
 
 tokens: // Empty

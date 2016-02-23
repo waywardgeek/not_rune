@@ -9,6 +9,7 @@ xyAction xyGotoActionCreate(xyState state, xyMtoken mtoken, xyState destState);
 xyAction xyShiftActionCreate(xyState state, xyMtoken mtoken, xyState destState);
 xyAction xyReduceActionCreate(xyState state, xyMtoken mtoken, xyMtoken reduceMtoken, uint32 statesToPop);
 xyAction xyAcceptActionCreate(xyState state, xyMtoken mtoken);
+xyMap xyMapCreate(xyMapType type);
 
 // Mtoken
 xyMtoken xyMtokenCreate(xyParser parser, xyMtokenType type, utSym sym);

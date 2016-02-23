@@ -66,6 +66,11 @@ enum ActionType XY_
     REDUCE
     ACCEPT
 
+enum MapType XY_MAP_
+    CONCAT
+    LIST
+    VALUE
+
 class Parser
 
 class Mtoken
@@ -82,7 +87,14 @@ class Action
     State destState
     Mtoken reduceMtoken
 
+class Map
+    MapType type
+    union type
+        uint32 position: VALUE
+
 relationship Root Parser hashed mandatory
 relationship Parser Mtoken hashed Type Sym mandatory
 relationship Parser State array mandatory
 relationship State Action hashed mtoken mandatory
+relationship Action Map cascade
+relationship Map Map doubly_linked cascade
