@@ -9,7 +9,7 @@ xyAction xyGotoActionCreate(xyState state, xyMtoken mtoken, xyState destState);
 xyAction xyShiftActionCreate(xyState state, xyMtoken mtoken, xyState destState);
 xyAction xyReduceActionCreate(xyState state, xyMtoken mtoken, xyMtoken reduceMtoken, uint32 statesToPop);
 xyAction xyAcceptActionCreate(xyState state, xyMtoken mtoken);
-xyMap xyMapCreate(xyMapType type);
+void xyPrintParser(xyParser parser);
 
 // Mtoken
 xyMtoken xyMtokenCreate(xyParser parser, xyMtokenType type, utSym sym);
@@ -27,12 +27,13 @@ void xyPrintValue(xyValue value);
 // List
 void xyPrintList(xyList list);
 
+// Map
+xyMap xyMapCreate(xyMapType type);
+void xyPrintMap(xyMap map);
+
 // Shortcuts
 char *xyMtokenGetName(xyMtoken mtoken);
 char *xyValueTypeGetName(xyValueType type);
-
-// Debugging
-void xyPrintParser(xyParser parser);
 
 // Globals
 extern xyRoot xyTheRoot;
