@@ -49,7 +49,7 @@ void xpPrintParser(xyParser parser) {
     xpItemset itemset;
     xpForeachParserItemset(parser, itemset) {
         xpPrintItemset(itemset);
-        printf("\n");
+        putchar('\n');
     } xpEndParserItemset;
     xyMtoken mtoken;
     xyForeachParserMtoken(parser, mtoken) {
@@ -66,6 +66,7 @@ void xpPrintParser(xyParser parser) {
             putchar('\n');
         }
     } xyEndParserMtoken;
+    putchar('\n');
 }
 
 // Create a token object.  Find an Mtoken it matches, and create it if not found.

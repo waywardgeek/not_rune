@@ -262,7 +262,6 @@ static void moveIedgeDestsToItemset(xpItemset itemset1, xpItemset itemset2) {
                 xpItem destItem = findItemInItemset(itemset2, xpItemGetProduction(item1),
                     xpItemGetDotPosition(item1));
                 utAssert(destItem != xpItemNull);
-                printf("Moving iedge\n");
                 xpItemAppendInIedge(destItem, iedge);
             }
         } xpEndSafeItemOutIedge;
@@ -278,7 +277,6 @@ static void mergeItemsetsWithIdenticalCores(xpItemset itemset) {
         destItemset = xpTransitionGetToItemset(transition);
         xpItemset oldItemset = findExistingIdenticalItemset(destItemset);
         if(oldItemset != xpItemsetNull) {
-            printf("Merging itemset %u into %u\n", xpItemset2Index(destItemset), xpItemset2Index(oldItemset));
             xpItemsetRemoveInTransition(destItemset, transition);
             xpItemsetAppendInTransition(oldItemset, transition);
             moveIedgeDestsToItemset(destItemset, oldItemset);
