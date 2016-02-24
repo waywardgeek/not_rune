@@ -11,7 +11,7 @@ CFLAGS=-Wall -Wno-unused-function -g -std=c11 -D_POSIX_C_SOURCE -DDD_DEBUG -Iinc
 LIBS=-lddutil-dbg
 
 SOURCE= \
-main/main.c \
+core/core.c \
 database/action.c \
 database/debugging.c \
 database/list.c \
@@ -22,6 +22,7 @@ database/state.c \
 database/string.c \
 database/value.c \
 database/xydatabase.c \
+main/main.c \
 parse/lexer.c \
 parse/padatabase.c \
 parse/parse.c \
@@ -68,7 +69,7 @@ clean:
 	rm -rf obj
 
 obj:
-	mkdir -p obj/database obj/main obj/parsegen obj/parse
+	mkdir -p obj/database obj/main obj/parsegen obj/parse obj/core
 
 obj/%.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
