@@ -5,6 +5,15 @@ static void printConcatMap(xyMap map) {
     xyMap left = xyMapGetFirstMap(map);
     xyMap right = xyMapGetNextMapMap(left);
     xyPrintMap(left);
+    putchar('+');
+    xyPrintMap(right);
+}
+
+// Print an append map.
+static void printAppendMap(xyMap map) {
+    xyMap left = xyMapGetFirstMap(map);
+    xyMap right = xyMapGetNextMapMap(left);
+    xyPrintMap(left);
     putchar('.');
     xyPrintMap(right);
 }
@@ -29,6 +38,9 @@ void xyPrintMap(xyMap map) {
     switch(xyMapGetType(map)) {
     case XY_MAP_CONCAT:
         printConcatMap(map);
+        break;
+    case XY_MAP_APPEND:
+        printAppendMap(map);
         break;
     case XY_MAP_LIST:
         printListMap(map);

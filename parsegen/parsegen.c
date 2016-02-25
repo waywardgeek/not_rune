@@ -82,6 +82,21 @@ xpToken xpTokenCreate(xpProduction production, xyMtokenType type, utSym sym) {
     return token;
 }
 
+// Report an error if there are any unused rules.
+static void checkForUnusedRules(xyParser parser) {
+    bool firstTime = true;
+    xpRule rule;
+    xpForeachParserRule(parser, rule) {
+        if(!firstTime) {
+            xyMtoken mtoken = xpRuleGetMtoken(rule);
+            if(xpMtokenGetFirstToken(mtoken) == xpTokenNull) {
+                utError("Unused rule %s", xyMtokenGetName(mtoken));
+            }
+        }
+        firstTime = false;
+    } xpEndParserRule;
+}
+
 xyParser xpParseGrammar(char *fileName) {
     xpDatabaseStart();
     xpLineNum = 1;
@@ -98,9 +113,11 @@ xyParser xpParseGrammar(char *fileName) {
         xyDatabaseStop();
         return xyParserNull;
     }
+    checkForUnusedRules(xpCurrentParser);
     if(!xpBuildParserActionGotoTable(xpCurrentParser)) {
         utExit("Exiting due to syntax conflicts");
     }
+    xpPrintParser(xpCurrentParser);
     xyPrintParser(xpCurrentParser);
     xpDatabaseStop();
     return xpCurrentParser;

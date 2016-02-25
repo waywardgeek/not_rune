@@ -101,10 +101,33 @@ static xyValue executeConcatMap(xyMap map, xyValueArray values, uint32 statesToP
     xyMap rightMap = xyMapGetNextMapMap(leftMap);
     xyValue leftValue = executeMap(leftMap, values, statesToPop, token);
     xyValue rightValue = executeMap(rightMap, values, statesToPop, token);
-    if(xyValueGetType(leftValue) != XY_LIST) {
-        paError(token, "Expected list value in concat map");
+    if(leftValue == xyValueNull || rightValue == xyValueNull ||
+            xyValueGetType(leftValue) != XY_LIST || xyValueGetType(rightValue) != XY_LIST) {
+        paError(token, "Expected two list values in concat map");
     }
-    xyListAppendValue(xyValueGetListVal(leftValue), rightValue);
+    xyList leftList = xyValueGetListVal(leftValue);
+    xyList rightList = xyValueGetListVal(rightValue);
+    xyValue value;
+    xyForeachListValue(rightList, value) {
+        xyListRemoveValue(rightList, value);
+        xyListAppendValue(leftList, value);
+    } xyEndListValue;
+    xyListDestroy(rightList);
+    return leftValue;
+}
+
+// Execute an apped map.
+static xyValue executeAppendMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
+    xyMap leftMap = xyMapGetFirstMap(map);
+    xyMap rightMap = xyMapGetNextMapMap(leftMap);
+    xyValue leftValue = executeMap(leftMap, values, statesToPop, token);
+    xyValue rightValue = executeMap(rightMap, values, statesToPop, token);
+    if(leftValue == xyValueNull || xyValueGetType(leftValue) != XY_LIST) {
+        paError(token, "Expected list left value in append map");
+    }
+    if(rightValue != xyValueNull) {
+        xyListAppendValue(xyValueGetListVal(leftValue), rightValue);
+    }
     return leftValue;
 }
 
@@ -114,7 +137,9 @@ static xyValue executeListMap(xyMap map, xyValueArray values, uint32 statesToPop
     xyMap child;
     xyForeachMapMap(map, child) {
         xyValue value = executeMap(child, values, statesToPop, token);
-        xyListAppendValue(list, value);
+        if(value != xyValueNull) {
+            xyListAppendValue(list, value);
+        }
     } xyEndMapMap;
     return xyListValueCreate(list);
 }
@@ -134,6 +159,8 @@ static xyValue executeDefaultMap(xyValueArray values, uint32 statesToPop, paToke
         xyValue value = xyValueArrayGetiValue(values, start);
         xyValueArraySetiValue(values, start, xyValueNull);
         return value;
+    } else if(statesToPop == 0) {
+        return xyValueNull;
     }
     xyList list = xyListAlloc();
     for(uint32 i = 0; i < statesToPop; i++) {
@@ -154,6 +181,8 @@ static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, pa
     switch(xyMapGetType(map)) {
     case XY_MAP_CONCAT:
         return executeConcatMap(map, values, statesToPop, token);
+    case XY_MAP_APPEND:
+        return executeAppendMap(map, values, statesToPop, token);
     case XY_MAP_LIST:
         return executeListMap(map, values, statesToPop, token);
     case XY_MAP_VALUE:

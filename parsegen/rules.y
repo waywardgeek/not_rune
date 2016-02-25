@@ -32,7 +32,7 @@ void xperror(
 %token <symVal> NONTERM KEYWORD
 %token <intVal> INTEGER
 
-%type <mapVal> map concatExpr concatExprs valueExpr listExpr
+%type <mapVal> map concatExpr concatExprs appendExpr appendExprs valueExpr listExpr
 
 %token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWDOUBLE_COLON KWARROW
 
@@ -99,10 +99,19 @@ concatExprs: // Empty
 }
 ;
 
-concatExpr: valueExpr
-| concatExpr '.' valueExpr
+concatExpr: appendExpr
+| concatExpr '+' appendExpr
 {
     $$ = xyMapCreate(xpCurrentParser, XY_MAP_CONCAT);
+    xyMapAppendMap($$, $1);
+    xyMapAppendMap($$, $3);
+}
+;
+
+appendExpr: valueExpr
+| appendExpr '.' valueExpr
+{
+    $$ = xyMapCreate(xpCurrentParser, XY_MAP_APPEND);
     xyMapAppendMap($$, $1);
     xyMapAppendMap($$, $3);
 }

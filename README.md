@@ -22,9 +22,9 @@ more information about the core syntax.  As an example, we can define a
 factorial function like this:
 
     (func uint fact(uint n) (
-        (if (= n 1)
-            (return 1))
-        (return (* n fact(- n 1)))))
+        (if (== n 1) (
+            (return 1)))
+        (return (* n (fact (- n 1))))))
 
 This Lisp-like syntax is not what you will use to write programs.  That's
 because Rune has a built-in LALR(1) parser which is used to translate much

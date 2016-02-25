@@ -67,6 +67,7 @@ enum ActionType XY_
     ACCEPT
 
 enum MapType XY_MAP_
+    APPEND
     CONCAT
     LIST
     VALUE

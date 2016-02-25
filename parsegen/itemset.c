@@ -62,6 +62,10 @@ void xpPrintItem(xpItem item) {
 // Print the itemset.
 void xpPrintItemset(xpItemset itemset) {
     printf("Itemset %u", xpItemset2Index(itemset));
+    xyState state = xpItemsetGetState(itemset);
+    if(state != xyStateNull) {
+        printf(" (state %u)", xyStateGetParserIndex(state));
+    }
     putchar('\n');
     xpItem item;
     xpForeachItemsetItem(itemset, item) {
@@ -509,6 +513,5 @@ bool xpBuildParserActionGotoTable(xyParser parser) {
     computeFirstTsets(parser);
     addEOFTokenToLookaheads(goal);
     computeLookaheadSets(parser);
-    xpPrintParser(parser);
     return buildParserActionGotoTable(parser);
 }
