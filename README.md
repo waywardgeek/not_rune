@@ -52,7 +52,7 @@ the "root" object.  Objects are either owned by a variable on the stack, or
 lives in the heap.  Those owned on the stack are destroyed when they go out of
 scope.
 
-Rune will be is strongly typed.  When you do not specify types of function
+Rune will be strongly typed.  When you do not specify types of function
 parameters, they are infered from the caller.  Consider this min function:
 
     func min(a, b) {
@@ -68,3 +68,16 @@ optimized for their parameter types:
 
     min("alice", "bob")
     min(3.4, 9.9)
+
+Most of the Rune compiler will be written in Rune as libraries, rather than
+hard-coded in C.  The process of adding an extension to Rune is:
+
+- Create any required syntax extensions
+- Write a function in Rune code without the extension that takes a list
+  conforming to the extended syntax as input, and transforms it into a list
+  that conforms to the lower level syntax.
+- Assign the function to a specific compilation pass.  The idea is to process
+  as many extensions as possible per pass.
+
+Extensions are executed sequentially, resulting in a Core compliant list, which
+is then translated to C.
