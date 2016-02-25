@@ -70,6 +70,7 @@ enum MapType XY_MAP_
     CONCAT
     LIST
     VALUE
+    KEYWORD
 
 class Parser
 
@@ -89,7 +90,9 @@ class Action
 
 class Map
     MapType type
-    uint32 position
+    union type
+        uint32 position: VALUE
+        sym Sym: KEYWORD
 
 relationship Root Parser hashed mandatory
 relationship Parser Mtoken hashed Type Sym mandatory

@@ -21,11 +21,7 @@ static void printListMap(xyMap map) {
         firstTime = false;
         xyPrintMap(child);
     } xyEndMapMap;
-}
-
-// Print a value map.
-static void printValueMap(xyMap map) {
-    printf("$%u", xyMapGetPosition(map));
+    putchar(')');
 }
 
 // Print a map object.
@@ -38,7 +34,10 @@ void xyPrintMap(xyMap map) {
         printListMap(map);
         break;
     case XY_MAP_VALUE:
-        printValueMap(map);
+        printf("$%u", xyMapGetPosition(map) + 1);
+        break;
+    case XY_MAP_KEYWORD:
+        printf("\"%s\"", utSymGetName(xyMapGetSym(map)));
         break;
     default:
         utExit("Unknown map type");

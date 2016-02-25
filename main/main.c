@@ -1,6 +1,7 @@
 #include "database.h"
 #include "parsegen.h"
 #include "parse.h"
+#include "core.h"
 
 xyRoot xyTheRoot;
 
@@ -22,6 +23,8 @@ int main(int argc, char **argv) {
     printf("Result:\n");
     xyPrintValue(value);
     putchar('\n');
+    utAssert(xyValueGetType(value) == XY_LIST);
+    coCompileList(xyValueGetListVal(value), "output.ru");
     xyDatabaseStop();
     utStop(false);
     return 0;

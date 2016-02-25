@@ -138,11 +138,10 @@ static xyValue executeDefaultMap(xyValueArray values, uint32 statesToPop, paToke
     xyList list = xyListAlloc();
     for(uint32 i = 0; i < statesToPop; i++) {
         xyValue value = xyValueArrayGetiValue(values, start + i);
-        if(value == xyValueNull) {
-            paError(token, "Used value twice in map");
+        if(value != xyValueNull) {
+            xyListAppendValue(list, value);
         }
         xyValueArraySetiValue(values, start + i, xyValueNull);
-        xyListAppendValue(list, value);
     }
     return xyListValueCreate(list);
 }
@@ -159,6 +158,8 @@ static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, pa
         return executeListMap(map, values, statesToPop, token);
     case XY_MAP_VALUE:
         return executeValueMap(map, values, statesToPop, token);
+    case XY_MAP_KEYWORD:
+        return xySymValueCreate(xyMapGetSym(map));
     default:
         utExit("Unknown map type");
     }

@@ -117,6 +117,11 @@ valueExpr: '$' INTEGER
     xyMapSetPosition($$, $2 - 1);
 }
 | listExpr
+| KEYWORD
+{
+    $$ = xyMapCreate(xpCurrentParser, XY_MAP_KEYWORD);
+    xyMapSetSym($$, $1);
+}
 ;
 
 listExpr: '(' concatExprs ')'

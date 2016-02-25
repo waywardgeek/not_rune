@@ -1,23 +1,56 @@
-goal: statements
-;
-
-statements: -> ()
-| statements statement NEWLINE -> $1.$2
-;
-
-statement: list
-;
-
-list: "(" values ")" -> $2
-;
-
-values: -> ()
-| values value -> $1.$2
-;
-
-value: list | IDENT | INTEGER | FLOAT | BOOL | STRING | operator
-;
-
-operator: "+" | "-" | "*" | "/" | "%" | "==" | "!=" | ">" | "<" | ">=" | "<="
-| "!" | "&&" | "||" | "~" | "&" | "|" | "^" | "<<" | ">>"
-;
+goal: imports statements ;
+statements: -> () | statements statement NEWLINE -> $1.$2;
+imports: -> () | imports import -> $1.$2;
+import: "(" "import" path ")" -> ("import" $3);
+statement: executableStatement | declaration;
+executableStatement: assignStatement | switchStatement | callStatement | returnStatement | deleteStatement;
+assignStatement: "(" "=" accessExpr expr ")" -> ("=" $3 $4);
+ifStatement: "(" "if" boolExpr statements optstatements ")" -> ("if" $3 $4 $5);
+whileStatement: "(" "while" boolExpr optstatements ")" -> ("while" $3 $4)
+    | "(" "do" statements "while" boolExpr optstatements ")" -> ("do" $3 "while" $5 $6);
+optstatements: | statements;
+callStatement: functionCall;
+returnStatement: "(" "return" expr ")" -> ("return" $3);
+deleteStatement: "(" "delete" accessExpr ")" -> ("delete" $3);
+switchStatement: "(" "switch" arithExpr cases optDefaultCase -> ("switch" $3).$4.$5;
+cases: -> () | cases "(" constArithExpr statements ")" -> $1.($3 $4);
+optDefaultCase: | "(" "default" statements ")";
+declarations: -> () | declarations declaration -> $1.$2;
+declaration: varDecl | functionDecl | classDecl;
+varDecl: "(" "var" type IDENT expr ")" -> ("var" $3 $4 $5);
+functionDecl: "(" "func" type IDENT "(" functionParamDecls ")" statements ")" -> ("func" $3 $4 $5 $6);
+functionParamDecls: -> () | functionParamDecls type IDENT -> $1.($2 $3);
+classDecl: "(" "class" declarations ")" -> ("class").$3;
+functionCall: "(" path exprs ")" -> ($1).$2;
+exprs: -> () | exprs expr -> $1.$2;
+type: path | "(" "array" type optSize ")" -> ("array" $3);
+optSize: | INTEGER;
+expr: boolOpExpr | arithOpExpr | accessExpr | functionCall | newExpr | list;
+accessExpr: path | "(" "index" accessExpr arithExpr ")" -> ("index" $2 $3);
+boolExprs: -> () | boolExprs boolExpr -> $1.$2;
+boolExpr: boolOpExpr | accessExpr | functionCall;
+boolOpExpr: logicalExpr | relationalExpr;
+logicalExpr: "(" "||" boolExprs ")" -> ("||").$3 | "(" "&&" boolExprs ")" -> ("&&").$3
+    | "(" "!" boolExpr ")" -> ("!" $3);
+relationalExpr: "(" "==" expr expr ")" -> ("==" $3 $4)
+    | "(" "!=" expr expr ")" -> ("!=" $3 $4)
+    | "(" relationalOp arithExpr arithExpr ")" -> ($2 $3 $4);
+relationalOp: "==" | "!=" | ">" | "<" | ">=" | "<=";
+arithExpr: arithOpExpr | accessExpr | functionCall;
+arithOpExpr: "(" multiArithOp arithExprs ")" -> ($2).$3
+    | "(" binaryArithOp arithExpr arithExpr ")" -> ($2 $3 $4)
+    | "(" unaryArithOp arithExpr ")" -> ($2 $3);
+arithExprs: -> () | arithExprs arithExpr -> $1.$2;
+multiArithOp: "+" | "*" | "&" | "|" | "^";
+binaryArithOp: "-" | "/" | "%" | "<<" | ">>";
+unaryArithOp: "~" | "-";
+constArithExpr: path | INTEGER;
+newExpr: "(" "new" path ")" -> ("new" $3);
+list: "(" values ")" -> $2;
+values: -> () | values value -> $1.$2 ;
+value: list | IDENT | INTEGER | FLOAT | BOOL | STRING | operator | keyword;
+operator: "&&" | "||" | "!" | relationalOp | binaryArithOp | unaryArithOp;
+keyword: "import" | "=" | "if" | "while" | "do" | "return" | "delete" | "switch"
+    | "default" | "var" | "func" | "class" | "array" | "index" | "dot";
+path: IDENT | "(" "dot" idents ")" -> ("dot").$3;
+idents: -> () | idents IDENT -> $1.$2;

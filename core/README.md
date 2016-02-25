@@ -51,4 +51,4 @@ list - dynamic array of value
 value - a union type capable of holding any built-in types other than value
 sym - a symbol in the global symbol table
 
-TODO: enhance lexer to support integer types and constants, and PATH.
+TODO: enhance lexer to support integer types, integer constants, and PATH tokens.
