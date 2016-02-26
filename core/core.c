@@ -78,11 +78,14 @@ bool coWriteSourceFile(xyList prog, char *outCFileName) {
 // false, class properties are stored in contiguous structures, and references
 // are pointers.
 bool coCompileList(xyList prog, char *outHFileName, char *outCFileName, bool usePointerReferences) {
+    coDatabaseStart();
     buildKeywords();
     if(!coAnalyze(prog) ||
             !coWriteHeaderFile(prog, outHFileName) ||
             !coWriteSourceFile(prog, outCFileName)) {
+        coDatabaseStop();
         return false;
     }
+    coDatabaseStop();
     return true;
 }

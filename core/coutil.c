@@ -7,7 +7,7 @@ void coError(xyValue value, char *message, ...) {
     va_start(ap, message);
     char *buf = utVsprintf((char *)message, ap);
     va_end(ap);
-    uint32 lineNum = xyValueGetLineNum(value);
+    uint32 lineNum = xyValueGetLinenum(value);
     if(lineNum != 0) {
         printf("Error on line %u: %s\n", lineNum, buf);
     } else {

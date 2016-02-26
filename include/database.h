@@ -16,13 +16,13 @@ void xyPrintParser(xyParser parser);
 xyMtoken xyMtokenCreate(xyParser parser, xyMtokenType type, utSym sym);
 
 // Value
-xyValue xySymValueCreate(utSym sym);
-xyValue xyIntValueCreate(int64 value);
-xyValue xyUintValueCreate(uint64 value);
-xyValue xyFloatValueCreate(double value);
-xyValue xyStringValueCreate(uint8 *value);
-xyValue xyListValueCreate(xyList list);
-xyValue xyBoolValueCreate(bool value);
+xyValue xySymValueCreate(utSym sym, uint32 linenum);
+xyValue xyIntValueCreate(int64 value, uint32 linenum);
+xyValue xyUintValueCreate(uint64 value, uint32 linenum);
+xyValue xyFloatValueCreate(double value, uint32 linenum);
+xyValue xyStringValueCreate(uint8 *value, uint32 linenum);
+xyValue xyListValueCreate(xyList list, uint32 linenum);
+xyValue xyBoolValueCreate(bool value, uint32 linenum);
 void xyPrintValue(xyValue value);
 
 // List

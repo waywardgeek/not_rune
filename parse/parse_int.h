@@ -11,4 +11,4 @@ void paPrintToken(paToken token);
 void paError(paToken token, char *message, ...);
 
 extern FILE *paFile;
-extern uint32 paLineNum;
+extern uint32 paLinenum;

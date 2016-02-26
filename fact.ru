@@ -3,4 +3,5 @@
 	(return 1)))
     (return (* n (fact (- n 1))))))
 
-(fact 6)
+(func void main() (
+    (fact 6)))

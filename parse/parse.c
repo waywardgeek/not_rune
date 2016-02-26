@@ -1,7 +1,7 @@
 #include "parse_int.h"
 
 FILE *paFile;
-uint32 paLineNum;
+uint32 paLinenum;
 
 static utSym paEOFSym, paNEWLINESym;
 
@@ -37,26 +37,27 @@ static void printStack(xyStateArray states, xyValueArray values) {
 // Build a value from a token.
 static xyValue buildTokenValue(paToken token) {
     xyMtoken mtoken = paTokenGetMtoken(token);
+    uint32 linenum = paTokenGetLinenum(token);
     utSym sym = utSymNull;
     if(mtoken != xyMtokenNull) {
         sym = xyMtokenGetSym(mtoken);
     }
     switch(paTokenGetType(token)) {
     case XY_TOK_KEYWORD:
-        return xySymValueCreate(sym);
+        return xySymValueCreate(sym, linenum);
     case XY_TOK_INT:
-        return xyUintValueCreate(paTokenGetIntVal(token));
+        return xyUintValueCreate(paTokenGetIntVal(token), linenum);
     case XY_TOK_FLOAT:
-        return xyFloatValueCreate(paTokenGetIntVal(token));
+        return xyFloatValueCreate(paTokenGetIntVal(token), linenum);
     case XY_TOK_STRING:
-        return xyStringValueCreate(paTokenGetText(token));
+        return xyStringValueCreate(paTokenGetText(token), linenum);
     case XY_TOK_IDENT:
         sym = utSymCreate((char *)paTokenGetText(token));
-        return xySymValueCreate(sym);
+        return xySymValueCreate(sym, linenum);
     case XY_TOK_NEWLINE:
-        return xySymValueCreate(paNEWLINESym);
+        return xySymValueCreate(paNEWLINESym, linenum);
     case XY_TOK_EOF:
-        return xySymValueCreate(paEOFSym);
+        return xySymValueCreate(paEOFSym, linenum);
     // TODO: Do we need any of these
     case XY_TOK_CHAR:
     case XY_TOK_OPERATOR:
@@ -135,13 +136,18 @@ static xyValue executeAppendMap(xyMap map, xyValueArray values, uint32 statesToP
 static xyValue executeListMap(xyMap map, xyValueArray values, uint32 statesToPop, paToken token) {
     xyList list = xyListAlloc();
     xyMap child;
+    uint32 minLinenum = 0;
     xyForeachMapMap(map, child) {
         xyValue value = executeMap(child, values, statesToPop, token);
         if(value != xyValueNull) {
             xyListAppendValue(list, value);
+            uint32 linenum = xyValueGetLinenum(value);
+            if(linenum != 0 && (minLinenum == 0 || linenum < minLinenum)) {
+                minLinenum = linenum;
+            }
         }
     } xyEndMapMap;
-    return xyListValueCreate(list);
+    return xyListValueCreate(list, minLinenum);
 }
 
 // Execute a value map.
@@ -162,6 +168,7 @@ static xyValue executeDefaultMap(xyValueArray values, uint32 statesToPop, paToke
     } else if(statesToPop == 0) {
         return xyValueNull;
     }
+    uint32 minLinenum = 0;
     xyList list = xyListAlloc();
     for(uint32 i = 0; i < statesToPop; i++) {
         xyValue value = xyValueArrayGetiValue(values, start + i);
@@ -169,8 +176,12 @@ static xyValue executeDefaultMap(xyValueArray values, uint32 statesToPop, paToke
             xyListAppendValue(list, value);
         }
         xyValueArraySetiValue(values, start + i, xyValueNull);
+        uint32 linenum = xyValueGetLinenum(value);
+        if(linenum != 0 && (minLinenum == 0 || linenum < minLinenum)) {
+            minLinenum = linenum;
+        }
     }
-    return xyListValueCreate(list);
+    return xyListValueCreate(list, minLinenum);
 }
 
 // Execute a map expression to combinethe values on the top of the stack.
@@ -188,7 +199,7 @@ static xyValue executeMap(xyMap map, xyValueArray values, uint32 statesToPop, pa
     case XY_MAP_VALUE:
         return executeValueMap(map, values, statesToPop, token);
     case XY_MAP_KEYWORD:
-        return xySymValueCreate(xyMapGetSym(map));
+        return xySymValueCreate(xyMapGetSym(map), paTokenGetLinenum(token));
     default:
         utExit("Unknown map type");
     }

@@ -28,7 +28,7 @@ class String
 
 class Value array
     ValueType type
-    uint32 lineNum
+    uint32 linenum
     union type
         int64 intVal: INT
         uint64 uintVal: UINT

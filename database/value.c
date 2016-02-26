@@ -49,58 +49,59 @@ void xyPrintValue(xyValue value) {
     }
 }
 
-static inline xyValue valueCreate(xyValueType type) {
+static inline xyValue valueCreate(xyValueType type, uint32 linenum) {
     xyValue value = xyValueAlloc();
     xyValueSetType(value, type);
+    xyValueSetLinenum(value, linenum);
     return value;
 }
 
 // Create a new sym value.
-xyValue xySymValueCreate(utSym sym) {
-    xyValue value = valueCreate(XY_SYM);
+xyValue xySymValueCreate(utSym sym, uint32 linenum) {
+    xyValue value = valueCreate(XY_SYM, linenum);
     xyValueSetSymVal(value, sym);
     return value;
 }
 
 // Create a new int value.
-xyValue xyIntValueCreate(int64 intVal) {
-    xyValue value = valueCreate(XY_INT);
+xyValue xyIntValueCreate(int64 intVal, uint32 linenum) {
+    xyValue value = valueCreate(XY_INT, linenum);
     xyValueSetIntVal(value, intVal);
     return value;
 }
 
 // Create a new uint value.
-xyValue xyUintValueCreate(uint64 uintVal) {
-    xyValue value = valueCreate(XY_UINT);
+xyValue xyUintValueCreate(uint64 uintVal, uint32 linenum) {
+    xyValue value = valueCreate(XY_UINT, linenum);
     xyValueSetUintVal(value, uintVal);
     return value;
 }
 
 // Create a new float value.
-xyValue xyFloatValueCreate(double floatVal) {
-    xyValue value = valueCreate(XY_FLOAT);
+xyValue xyFloatValueCreate(double floatVal, uint32 linenum) {
+    xyValue value = valueCreate(XY_FLOAT, linenum);
     xyValueSetFloatVal(value, floatVal);
     return value;
 }
 
 // Create a new string value.
-xyValue xyStringValueCreate(uint8 *stringVal) {
-    xyValue value = valueCreate(XY_STRING);
+xyValue xyStringValueCreate(uint8 *stringVal, uint32 linenum) {
+    xyValue value = valueCreate(XY_STRING, linenum);
     xyString string = xyStringCreate(stringVal);
     xyValueSetStringVal(value, string);
     return value;
 }
 
 // Create a new list value.
-xyValue xyListValueCreate(xyList list) {
-    xyValue value = valueCreate(XY_LIST);
+xyValue xyListValueCreate(xyList list, uint32 linenum) {
+    xyValue value = valueCreate(XY_LIST, linenum);
     xyValueSetListVal(value, list);
     return value;
 }
 
 // Create a new bool value.
-xyValue xyBoolValueCreate(bool boolVal) {
-    xyValue value = valueCreate(XY_BOOL);
+xyValue xyBoolValueCreate(bool boolVal, uint32 linenum) {
+    xyValue value = valueCreate(XY_BOOL, linenum);
     xyValueSetBoolVal(value, boolVal);
     return value;
 }

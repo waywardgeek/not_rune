@@ -24,7 +24,7 @@ void paError(paToken token, char *message, ...) {
     va_start(ap, message);
     buff = utVsprintf((char *)message, ap);
     va_end(ap);
-    utError("Line %d, token \"%s\": %s", paTokenGetLineNum(token),
+    utError("Line %d, token \"%s\": %s", paTokenGetLinenum(token),
             paTokenGetText(token), buff);
 }
 
@@ -46,7 +46,7 @@ void paLexerStop(void) {
 
 // Just print the contents of the token
 void paPrintToken(paToken token) {
-    printf("%-6u ", paTokenGetLineNum(token));
+    printf("%-6u ", paTokenGetLinenum(token));
     switch(paTokenGetType(token)) {
     case XY_TOK_INT:
         printf("INTEGER: %llu\n", paTokenGetIntVal(token));
@@ -88,7 +88,7 @@ static inline paToken paTokenCreate(xyMtokenType type, uint8 *text) {
     paToken token = paTokenAlloc();
     paTokenSetType(token, type);
     paTokenSetText(token, text, strlen((char *)text) + 1);
-    paTokenSetLineNum(token, paLineNum);
+    paTokenSetLinenum(token, paLinenum);
     utSym sym = utSymNull;
     if(type == XY_TOK_KEYWORD) {
         sym = utSymCreate((char *)text);
@@ -350,14 +350,14 @@ static paToken lexRawToken(void) {
         if(paLine == NULL) {
             return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
         }
-        paLineNum++;
+        paLinenum++;
     }
     while(lineIsSlash()) {
         paLine = utf8ReadLine(paFile);
         if(paLine == NULL) {
             return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
         }
-        paLineNum++;
+        paLinenum++;
     }
     paLine = skipSpace(paLine);
     if(*paLine == '\0') {
@@ -390,11 +390,11 @@ static void skipBlankLines(void) {
     }
     paLine = utf8ReadLine(paFile);
     while(paLine != NULL && lineIsBlank()) {
-        paLineNum++;
+        paLinenum++;
         paLine = utf8ReadLine(paFile);
     }
     if(paLine != NULL) {
-        paLineNum++;
+        paLinenum++;
     }
 }
 
