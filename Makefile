@@ -14,6 +14,7 @@ SOURCE= \
 core/analyze.c \
 core/codatabase.c \
 core/core.c \
+core/coutil.c \
 database/action.c \
 database/debugging.c \
 database/list.c \

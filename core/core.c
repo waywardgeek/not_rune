@@ -1,13 +1,60 @@
 #include "core_int.h"
 
-static FILE *coFile;
+FILE *coFile;
+
+// Create a new keyword.
+coKeyword coKeywordCreate(coKeywordType type, char *name) {
+    coKeyword keyword = coKeywordAlloc();
+    coKeywordSetSym(keyword, utSymCreate(name));
+    coRootInsertKeyword(xyTheRoot, keyword);
+    return keyword;
+}
+
+// Build the keyword table.
+static void buildKeywords(void) {
+    coKeywordCreate(CO_KWIMPORT, "import");
+    coKeywordCreate(CO_KWASSIGN, "=");
+    coKeywordCreate(CO_KWIF, "if");
+    coKeywordCreate(CO_KWWHILE, "while");
+    coKeywordCreate(CO_KWDO, "do");
+    coKeywordCreate(CO_KWRETURN, "return");
+    coKeywordCreate(CO_KWDELETE, "delete");
+    coKeywordCreate(CO_KWSWITCH, "switch");
+    coKeywordCreate(CO_KWDEFAULT, "default");
+    coKeywordCreate(CO_KWVAR, "var");
+    coKeywordCreate(CO_KWFUNC, "func");
+    coKeywordCreate(CO_KWCLASS, "class");
+    coKeywordCreate(CO_KWARRAY, "array");
+    coKeywordCreate(CO_KWINDEX, "index");
+    coKeywordCreate(CO_KWOR, "||");
+    coKeywordCreate(CO_KWAND, "&&");
+    coKeywordCreate(CO_KWNOT, "!");
+    coKeywordCreate(CO_KWEQ, "==");
+    coKeywordCreate(CO_KWNE, "!=");
+    coKeywordCreate(CO_KWGT, ">");
+    coKeywordCreate(CO_KWLT, "<");
+    coKeywordCreate(CO_KWGE, ">=");
+    coKeywordCreate(CO_KWLE, "<=");
+    coKeywordCreate(CO_KWMINUS, "-");
+    coKeywordCreate(CO_KWPLUS, "+");
+    coKeywordCreate(CO_KWMUL, "*");
+    coKeywordCreate(CO_KWBITAND, "&");
+    coKeywordCreate(CO_KWBITOR, "|");
+    coKeywordCreate(CO_KWBITXOR, "^");
+    coKeywordCreate(CO_KWDIV, "/");
+    coKeywordCreate(CO_KWMOD, "%");
+    coKeywordCreate(CO_KWLSHIFT, "<<");
+    coKeywordCreate(CO_KWRSHIFT, ">>");
+    coKeywordCreate(CO_KWCOMP, "~");
+    coKeywordCreate(CO_KWNEW, "new");
+    coKeywordCreate(CO_KWDOT, "dot");
+}
 
 // Write the header file.
 bool coWriteHeaderFile(xyList prog, char *outHFileName) {
-    coFile = fopen(outHFileName, "r");
+    coFile = fopen(outHFileName, "w");
     if(coFile == NULL) {
         utExit("Unable to open C header file %s for writing", outHFileName);
-        return false;
     }
     //writeHeaderFile(prog);
     fclose(coFile);
@@ -16,10 +63,9 @@ bool coWriteHeaderFile(xyList prog, char *outHFileName) {
 
 // Write the source file.
 bool coWriteSourceFile(xyList prog, char *outCFileName) {
-    coFile = fopen(outCFileName, "r");
+    coFile = fopen(outCFileName, "w");
     if(coFile == NULL) {
         utExit("Unable to open C source file %s for writing", outCFileName);
-        return false;
     }
     //writeSourceFile(prog);
     fclose(coFile);
@@ -32,6 +78,7 @@ bool coWriteSourceFile(xyList prog, char *outCFileName) {
 // false, class properties are stored in contiguous structures, and references
 // are pointers.
 bool coCompileList(xyList prog, char *outHFileName, char *outCFileName, bool usePointerReferences) {
+    buildKeywords();
     if(!coAnalyze(prog) ||
             !coWriteHeaderFile(prog, outHFileName) ||
             !coWriteSourceFile(prog, outCFileName)) {

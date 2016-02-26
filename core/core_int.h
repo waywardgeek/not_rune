@@ -10,3 +10,7 @@ void coUtilStop(void);
 void coWrtemp(FILE *file, char *temp, ...);
 char *coSwrtemp(char *temp, ...);
 utSym coUpperSym(utSym sym);
+void coError(xyValue value, char *message, ...);
+
+// Globals
+extern FILE *coFile;

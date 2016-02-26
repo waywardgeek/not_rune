@@ -42,6 +42,44 @@ enum ExprType CO_
     BITXOR
     COMP
 
+enum KeywordType CO_KW
+    IMPORT
+    ASSIGN
+    IF
+    WHILE
+    DO
+    RETURN
+    DELETE
+    SWITCH
+    DEFAULT
+    VAR
+    FUNC
+    CLASS
+    ARRAY
+    INDEX
+    OR
+    AND
+    NOT
+    EQ
+    NE
+    GT
+    LT
+    GE
+    LE
+    MINUS
+    PLUS
+    MUL
+    BITAND
+    BITOR
+    BITXOR
+    DIV
+    MOD
+    LSHIFT
+    RSHIFT
+    COMP
+    NEW
+    DOT
+
 class Root: xy
 
 class List: xy
@@ -68,6 +106,7 @@ class Statement
 class Expr
 
 class Keyword
+    KeywordType type
 
 relationship Root Ident:Global cascade
 relationship Ident Ident hashed cascade

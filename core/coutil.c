@@ -1,6 +1,21 @@
 #include <ctype.h>
 #include "core_int.h"
 
+// Report an error.
+void coError(xyValue value, char *message, ...) {
+    va_list ap;
+    va_start(ap, message);
+    char *buf = utVsprintf((char *)message, ap);
+    va_end(ap);
+    uint32 lineNum = xyValueGetLineNum(value);
+    if(lineNum != 0) {
+        printf("Error on line %u: %s\n", lineNum, buf);
+    } else {
+        printf("Error: %s\n", buf);
+    }
+    utLongjmp();
+}
+
 // Find out how many args are used in a template.
 static uint32 countArgs(char *temp) {
     char c;
