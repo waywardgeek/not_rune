@@ -13,6 +13,8 @@ static void bindIdentifiers(xyList progList) {
             // Only function calls start without a keyword
             coError(value, "Executable statements are not allowed in the global scope");
         }
+        //switch(coKeywordGetType(keyword)) {
+        //}
     } xyEndListValue;
 }
 
