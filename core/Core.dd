@@ -1,0 +1,78 @@
+module Core co
+
+import Database
+
+enum IdentType CO_
+    CLASS
+    VAR
+    FUNC
+
+enum StatementType CO_
+    ASSIGN
+    SWITCH
+    CALL
+    RETURN
+    DELETE
+    IF
+    WHILE
+    VARDECL
+    FUNCDECL
+    CLASSDECL
+
+enum ExprType CO_
+    OR
+    AND
+    NOT
+    EQ
+    NE
+    GT
+    GE
+    LT
+    LE
+    NEG
+    ADD
+    SUB
+    MUL
+    DIV
+    MOD
+    SHIFTL
+    SHIFTR
+    BITAND
+    BITOR
+    BITXOR
+    COMP
+
+class Root: xy
+
+class List: xy
+
+class Ident
+    IdentType type
+    union type
+        Class theClass cascade: CLASS
+        Var var cascade: VAR
+        Func func cascade: FUNC
+
+class Class
+    Ident ident
+
+class Var
+    Ident ident
+
+class Func
+    Ident ident
+    List list
+
+class Statement
+
+class Expr
+
+class Keyword
+
+relationship Root Ident:Global cascade
+relationship Ident Ident hashed cascade
+relationship Func Statement:Top cascade
+relationship Statement Statement doubly_linked cascade
+relationship Statement Expr cascade child_only
+relationship Expr Expr doubly_linked cascade
+relationship Root Keyword hashed mandatory

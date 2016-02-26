@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     xyPrintValue(value);
     putchar('\n');
     utAssert(xyValueGetType(value) == XY_LIST);
-    coCompileList(xyValueGetListVal(value), "output.ru");
+    coCompileList(xyValueGetListVal(value), "output.h", "output.c", true);
     xyDatabaseStop();
     utStop(false);
     return 0;

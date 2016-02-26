@@ -11,6 +11,8 @@ CFLAGS=-Wall -Wno-unused-function -g -std=c11 -D_POSIX_C_SOURCE -DDD_DEBUG -Iinc
 LIBS=-lddutil-dbg
 
 SOURCE= \
+core/analyze.c \
+core/codatabase.c \
 core/core.c \
 database/action.c \
 database/debugging.c \
@@ -34,7 +36,7 @@ parsegen/ruleparse.c \
 parsegen/rulelex.c
 
 OBJS=$(patsubst %.c,obj/%.o,$(SOURCE))
-GENFILES=database/xydatabase.c include/xydatabase.h parsegen/xpdatabase.c parsegen/xpdatabase.h parsegen/ruleparse.c parsegen/ruleparse.h parsegen/rulelex.c parse/padatabase.c parse/padatabase.h
+GENFILES=database/xydatabase.c include/xydatabase.h parsegen/xpdatabase.c parsegen/xpdatabase.h parsegen/ruleparse.c parsegen/ruleparse.h parsegen/rulelex.c parse/padatabase.c parse/padatabase.h core/codatabase.c core/codatabase.h
 
 all: obj rune
 
@@ -63,6 +65,11 @@ parsegen/ruleparse.c: parsegen/rules.y
 
 parsegen/rulelex.c: parsegen/rules.l parsegen/ruleparse.h
 	cd parsegen; flex -P xp -o rulelex.c rules.l
+
+core/codatabase.c: core/codatabase.h
+
+core/codatabase.h: core/Core.dd
+	cd core; datadraw -I ../database Core.dd
 
 clean:
 	rm -f rune $(GENFILES)
