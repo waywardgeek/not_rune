@@ -1,53 +1,6 @@
 module Database xy
 
-enum ValueType XY_
-    INT
-    UINT
-    FLOAT
-    DOUBLE
-    BOOL
-    STRING
-    LIST
-    SYM
-
-enum IdentType XY_
-    NAMESPACE
-
-class Root
-
-class Ident
-    IdentType type
-    union type
-        Namespace namespaceVal cascade: NAMESPACE
-
-class Namespace
-    Ident ident
-
-class String
-    array uint8 text
-
-class Value array
-    ValueType type
-    uint32 linenum
-    union type
-        int64 intVal: INT
-        uint64 uintVal: UINT
-        float floatVal: FLOAT
-        double doubleVal: DOUBLE
-        bool boolVal: BOOL
-        String stringVal cascade: STRING
-        List listVal cascade: LIST
-        sym symVal: SYM
-
-class List
-
-relationship List Value array cascade
-relationship Root Namespace:Global cascade
-relationship Namespace Ident hashed mandatory
-
-schema Parse
-
-enum MtokenType XY_TOK_
+enum TokenType XY_
     NONTERM
     KEYWORD
     INT
@@ -57,9 +10,8 @@ enum MtokenType XY_TOK_
     CHAR
     IDENT
     IDENTREF
-    IDENTDECL
-    OPERATOR
-    COMMENT
+    IDENTDEF
+    LIST
     NEWLINE
     EOF
 
@@ -73,13 +25,40 @@ enum MapType XY_MAP_
     APPEND
     CONCAT
     LIST
-    VALUE
+    TOKEN
     KEYWORD
+
+class Root
+
+class Ident
+
+class Idref
+
+class String
+    array uint8 text
+
+class Token array
+    TokenType type
+    uint32 linenum
+    union type
+        int64 intVal: INT  // Convert this to bigints
+        double floatVal: FLOAT
+        bool boolVal: BOOL
+        String stringVal cascade: STRING
+        List listVal cascade: LIST
+        uint32 charVal: CHAR
+        sym symVal: IDENT
+        Ident identVal cascade: IDENTDEF
+        Idref idrefVal cascade: IDENTREF
+
+class List
+
+schema Parse
 
 class Parser
 
 class Mtoken
-    MtokenType type
+    TokenType type
     sym Sym
 
 class State array
@@ -95,13 +74,18 @@ class Action
 class Map
     MapType type
     union type
-        uint32 position: VALUE
+        uint32 position: TOKEN
         sym Sym: KEYWORD
 
+relationship Root Ident:Global cascade
+relationship Ident Ident hashed cascade
+relationship Ident Idref doubly_linked mandatory
 relationship Root Parser hashed mandatory
+relationship List Token array cascade
 relationship Parser Mtoken hashed Type Sym mandatory
 relationship Parser State array mandatory
 relationship Parser Map doubly_linked mandatory
 relationship State Action hashed mtoken mandatory
 relationship Map Action doubly_linked
 relationship Map Map doubly_linked cascade
+relationship Mtoken Token parent_only

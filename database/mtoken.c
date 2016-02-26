@@ -3,19 +3,17 @@
 // Return a text name for this mtoken.
 char *xyMtokenGetName(xyMtoken mtoken) {
     switch(xyMtokenGetType(mtoken)) {
-    case XY_TOK_NONTERM:
-    case XY_TOK_KEYWORD:
+    case XY_NONTERM:
+    case XY_KEYWORD:
         return utSymGetName(xyMtokenGetSym(mtoken));
-    case XY_TOK_INT: return "INTEGER";
-    case XY_TOK_BOOL: return "BOOL";
-    case XY_TOK_FLOAT: return "FLOAT";
-    case XY_TOK_STRING: return "STRING";
-    case XY_TOK_CHAR: return "CHAR";
-    case XY_TOK_IDENT: return "IDENT";
-    case XY_TOK_OPERATOR: return "OPERATOR";
-    case XY_TOK_COMMENT: return "COMMENT";
-    case XY_TOK_NEWLINE: return "NEWLINE";
-    case XY_TOK_EOF: return "EOF";
+    case XY_INT: return "INTEGER";
+    case XY_BOOL: return "BOOL";
+    case XY_FLOAT: return "FLOAT";
+    case XY_STRING: return "STRING";
+    case XY_CHAR: return "CHAR";
+    case XY_IDENT: return "IDENT";
+    case XY_NEWLINE: return "NEWLINE";
+    case XY_EOF: return "EOF";
     default:
         utExit("Unknown mtoken type");
     }
@@ -23,7 +21,7 @@ char *xyMtokenGetName(xyMtoken mtoken) {
 }
 
 // Create a new master token object on the parser.
-xyMtoken xyMtokenCreate(xyParser parser, xyMtokenType type, utSym sym) {
+xyMtoken xyMtokenCreate(xyParser parser, xyTokenType type, utSym sym) {
     xyMtoken mtoken = xyParserFindMtoken(parser, type, sym);
     if(mtoken != xyMtokenNull) {
         return mtoken;

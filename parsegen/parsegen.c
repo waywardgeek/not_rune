@@ -7,7 +7,7 @@ xyParser xpCurrentParser;
 // Print a token.
 void xpPrintToken(xpToken token) {
     xyMtoken mtoken = xpTokenGetMtoken(token);
-    if(xyMtokenGetType(mtoken) == XY_TOK_KEYWORD) {
+    if(xyMtokenGetType(mtoken) == XY_KEYWORD) {
         printf("\"%s\"", xyMtokenGetName(mtoken));
     } else {
         printf("%s", xyMtokenGetName(mtoken));
@@ -53,7 +53,7 @@ void xpPrintParser(xyParser parser) {
     } xpEndParserItemset;
     xyMtoken mtoken;
     xyForeachParserMtoken(parser, mtoken) {
-        if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM) {
+        if(xyMtokenGetType(mtoken) == XY_NONTERM) {
             printf("FIRST[%s] = ", xyMtokenGetName(mtoken));
             xpTset tset = xpMtokenGetFirstTset(mtoken);
             xpTentry tentry;
@@ -70,7 +70,7 @@ void xpPrintParser(xyParser parser) {
 }
 
 // Create a token object.  Find an Mtoken it matches, and create it if not found.
-xpToken xpTokenCreate(xpProduction production, xyMtokenType type, utSym sym) {
+xpToken xpTokenCreate(xpProduction production, xyTokenType type, utSym sym) {
     xyParser parser = xpRuleGetParser(xpProductionGetRule(production));
     xyMtoken mtoken = xyParserFindMtoken(parser, type, sym);
     if(mtoken == xyMtokenNull) {

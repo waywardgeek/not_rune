@@ -126,7 +126,7 @@ xpTentry xpTentryCreate(xpTset tset, xyMtoken mtoken) {
 // first goal rule.
 static void addEOFTokenToLookaheads(xpRule rule) {
     xyParser parser = xpRuleGetParser(rule);
-    xyMtoken eofMtoken = xyMtokenCreate(parser, XY_TOK_EOF, utSymNull);
+    xyMtoken eofMtoken = xyMtokenCreate(parser, XY_EOF, utSymNull);
     xpProduction production;
     xpForeachRuleProduction(rule, production) {
         xpItem item;
@@ -175,7 +175,7 @@ static void computeClosure(xyParser parser, xpItemset itemset) {
         if(position < xpProductionGetUsedToken(production)) {
             xpToken token = xpProductionGetiToken(production, position);
             xyMtoken mtoken = xpTokenGetMtoken(token);
-            if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM) {
+            if(xyMtokenGetType(mtoken) == XY_NONTERM) {
                 xpRule rule = xpMtokenGetRule(mtoken);
                 if(rule == xpRuleNull) {
                     utError("Undefined non-terminal %s", xyMtokenGetName(mtoken));
@@ -318,7 +318,7 @@ static void updateFirstTsetWithProduction(xpTset tset, xpProduction production) 
     xpToken token;
     xpForeachProductionToken(production, token) {
         xyMtoken mtoken = xpTokenGetMtoken(token);
-        if(xyMtokenGetType(mtoken) != XY_TOK_NONTERM) {
+        if(xyMtokenGetType(mtoken) != XY_NONTERM) {
             xpTentryCreate(tset, mtoken);
             return;
         }
@@ -351,7 +351,7 @@ static void computeMtokenFirstTset(xyMtoken mtoken) {
 static void computeFirstTsets(xyParser parser) {
     xyMtoken mtoken;
     xyForeachParserMtoken(parser, mtoken) {
-        if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM && xpMtokenGetFirstTset(mtoken) == xpTsetNull) {
+        if(xyMtokenGetType(mtoken) == XY_NONTERM && xpMtokenGetFirstTset(mtoken) == xpTsetNull) {
             computeMtokenFirstTset(mtoken);
         }
     } xyEndParserMtoken;
@@ -401,7 +401,7 @@ static bool addLookaheadsFromFirst(xpItem item, xpTset tset) {
     while(pos < numTokens) {
         xpToken token = xpProductionGetiToken(production, pos);
         xyMtoken mtoken = xpTokenGetMtoken(token);
-        if(xyMtokenGetType(mtoken) != XY_TOK_NONTERM) {
+        if(xyMtokenGetType(mtoken) != XY_NONTERM) {
             addedSomething |= addTsetMtoken(tset, mtoken);
             return addedSomething;
         }
@@ -458,7 +458,7 @@ static bool buildStateActions(xyState state) {
     xpForeachItemsetOutTransition(itemset, transition) {
         xyState destState = xpItemsetGetState(xpTransitionGetToItemset(transition));
         xyMtoken mtoken = xpTransitionGetMtoken(transition);
-        if(xyMtokenGetType(mtoken) == XY_TOK_NONTERM) {
+        if(xyMtokenGetType(mtoken) == XY_NONTERM) {
             passed &= xyGotoActionCreate(state, mtoken, destState) != xyActionNull;
         } else {
             passed &= xyShiftActionCreate(state, mtoken, destState) != xyActionNull;

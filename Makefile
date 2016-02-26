@@ -23,11 +23,10 @@ database/mtoken.c \
 database/parser.c \
 database/state.c \
 database/string.c \
-database/value.c \
+database/token.c \
 database/xydatabase.c \
 main/main.c \
 parse/lexer.c \
-parse/padatabase.c \
 parse/parse.c \
 parse/utf8.c \
 parsegen/itemset.c \
@@ -37,7 +36,7 @@ parsegen/ruleparse.c \
 parsegen/rulelex.c
 
 OBJS=$(patsubst %.c,obj/%.o,$(SOURCE))
-GENFILES=database/xydatabase.c include/xydatabase.h parsegen/xpdatabase.c parsegen/xpdatabase.h parsegen/ruleparse.c parsegen/ruleparse.h parsegen/rulelex.c parse/padatabase.c parse/padatabase.h core/codatabase.c core/codatabase.h
+GENFILES=database/xydatabase.c include/xydatabase.h parsegen/xpdatabase.c parsegen/xpdatabase.h parsegen/ruleparse.c parsegen/ruleparse.h parsegen/rulelex.c core/codatabase.c core/codatabase.h
 
 all: obj rune
 
@@ -55,11 +54,6 @@ parsegen/xpdatabase.c: parsegen/xpdatabase.h
 
 parsegen/xpdatabase.h: parsegen/Parsegen.dd
 	cd parsegen; datadraw -I ../database Parsegen.dd
-
-parse/padatabase.c: parse/padatabase.h
-
-parse/padatabase.h: parse/Parse.dd
-	cd parse; datadraw -I ../database Parse.dd
 
 parsegen/ruleparse.c: parsegen/rules.y
 	cd parsegen; bison -d -b xp -p xp -o ruleparse.c rules.y

@@ -2,12 +2,12 @@
 #include "core_int.h"
 
 // Report an error.
-void coError(xyValue value, char *message, ...) {
+void coError(xyToken token, char *message, ...) {
     va_list ap;
     va_start(ap, message);
     char *buf = utVsprintf((char *)message, ap);
     va_end(ap);
-    uint32 lineNum = xyValueGetLinenum(value);
+    uint32 lineNum = xyTokenGetLinenum(token);
     if(lineNum != 0) {
         printf("Error on line %u: %s\n", lineNum, buf);
     } else {

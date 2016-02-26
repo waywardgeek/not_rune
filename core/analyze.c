@@ -2,20 +2,20 @@
 
 // Bind identifiers.
 static void bindIdentifiers(xyList progList) {
-    xyValue value;
-    xyForeachListValue(progList, value) {
-        xyList statementList = xyValueGetListVal(value);
-        xyValue value = xyListGetiValue(statementList, 0);
-        utAssert(xyValueGetType(value) == XY_SYM);
-        utSym sym = xyValueGetSymVal(value);
+    xyToken token;
+    xyForeachListToken(progList, token) {
+        xyList statementList = xyTokenGetListVal(token);
+        xyToken token = xyListGetiToken(statementList, 0);
+        utAssert(xyTokenGetType(token) == XY_IDENT);
+        utSym sym = xyTokenGetSymVal(token);
         coKeyword keyword = coRootFindKeyword(xyTheRoot, sym);
         if(keyword == coKeywordNull) {
             // Only function calls start without a keyword
-            coError(value, "Executable statements are not allowed in the global scope");
+            coError(token, "Executable statements are not allowed in the global scope");
         }
         //switch(coKeywordGetType(keyword)) {
         //}
-    } xyEndListValue;
+    } xyEndListToken;
 }
 
 // Build an internal representation of the package.  Do symantic checking,

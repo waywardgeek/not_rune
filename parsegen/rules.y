@@ -32,7 +32,7 @@ void xperror(
 %token <symVal> NONTERM KEYWORD
 %token <intVal> INTEGER
 
-%type <mapVal> map concatExpr concatExprs appendExpr appendExprs valueExpr listExpr
+%type <mapVal> map concatExpr concatExprs appendExpr tokenExpr listExpr
 
 %token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWDOUBLE_COLON KWARROW
 
@@ -51,7 +51,7 @@ rule: ruleHeader productions ';'
 ruleHeader: NONTERM ':'
 {
     xpCurrentRule = xpRuleAlloc();
-    xyMtoken mtoken = xyMtokenCreate(xpCurrentParser, XY_TOK_NONTERM, $1);
+    xyMtoken mtoken = xyMtokenCreate(xpCurrentParser, XY_NONTERM, $1);
     xpRuleInsertMtoken(xpCurrentRule, mtoken);
     xpParserAppendRule(xpCurrentParser, xpCurrentRule);
     xpCurrentProduction = xpProductionAlloc();
@@ -108,8 +108,8 @@ concatExpr: appendExpr
 }
 ;
 
-appendExpr: valueExpr
-| appendExpr '.' valueExpr
+appendExpr: tokenExpr
+| appendExpr '.' tokenExpr
 {
     $$ = xyMapCreate(xpCurrentParser, XY_MAP_APPEND);
     xyMapAppendMap($$, $1);
@@ -117,12 +117,12 @@ appendExpr: valueExpr
 }
 ;
 
-valueExpr: '$' INTEGER
+tokenExpr: '$' INTEGER
 {
     if($2 < 1 || $2 > xpProductionGetUsedToken(xpCurrentProduction)) {
         xperror("$%u is out of range", $2);
     }
-    $$ = xyMapCreate(xpCurrentParser, XY_MAP_VALUE);
+    $$ = xyMapCreate(xpCurrentParser, XY_MAP_TOKEN);
     xyMapSetPosition($$, $2 - 1);
 }
 | listExpr
@@ -145,35 +145,35 @@ tokens: // Empty
 
 token: KWINTEGER
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_INT, utSymNull);
+    xpTokenCreate(xpCurrentProduction, XY_INT, utSymNull);
 }
 | KWFLOAT
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_FLOAT, utSymNull);
+    xpTokenCreate(xpCurrentProduction, XY_FLOAT, utSymNull);
 }
 | KWBOOL
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_BOOL, utSymNull);
+    xpTokenCreate(xpCurrentProduction, XY_BOOL, utSymNull);
 }
 | KWSTRING
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_STRING, utSymNull);
+    xpTokenCreate(xpCurrentProduction, XY_STRING, utSymNull);
 }
 | KWIDENT
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_IDENT, utSymNull);
+    xpTokenCreate(xpCurrentProduction, XY_IDENT, utSymNull);
 }
 | KWNEWLINE
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_NEWLINE, utSymNull);
+    xpTokenCreate(xpCurrentProduction, XY_NEWLINE, utSymNull);
 }
 | NONTERM
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_NONTERM, $1);
+    xpTokenCreate(xpCurrentProduction, XY_NONTERM, $1);
 }
 | KEYWORD
 {
-    xpTokenCreate(xpCurrentProduction, XY_TOK_KEYWORD, $1);
+    xpTokenCreate(xpCurrentProduction, XY_KEYWORD, $1);
 }
 ;
 

@@ -48,7 +48,7 @@ int utf8FindLengthAndValidate(uint8 *p, bool *valid)
     unicodeCharacter = c >> expectedLength;
     bits = 7 - expectedLength;
     if(expectedLength > 4 || expectedLength == 1) {
-        // No unicode values are coded for more than 4 bytes 
+        // No unicode tokens are coded for more than 4 bytes 
         *valid = false;
     }
     if(expectedLength == 1 || (expectedLength == 2 && unicodeCharacter <= 1)) {
@@ -65,7 +65,7 @@ int utf8FindLengthAndValidate(uint8 *p, bool *valid)
     }
     if(length != expectedLength || unicodeCharacter > 0x10ffff ||
         (unicodeCharacter >= 0xd800 && unicodeCharacter <= 0xdfff)) {
-        /* Unicode only defines characters up to 0x10ffff, and excludes values
+        /* Unicode only defines characters up to 0x10ffff, and excludes tokens
            0xd800 through 0xdfff */
         *valid = false;
     }

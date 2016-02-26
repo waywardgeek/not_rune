@@ -9,7 +9,6 @@
 #include <ctype.h>
 #include "parse_int.h"
 
-static xyParser paCurrentParser;
 static uint8 *paLine;
 static uint8 *paText;
 static size_t paTextSize, paTextPos;
@@ -18,19 +17,18 @@ static bool paEnding;
 static uint32 paParenDepth, paBracketDepth;
 
 // Print out an error message and exit.
-void paError(paToken token, char *message, ...) {
+void paError(xyToken token, char *message, ...) {
     char *buff;
     va_list ap;
     va_start(ap, message);
     buff = utVsprintf((char *)message, ap);
     va_end(ap);
-    utError("Line %d, token \"%s\": %s", paTokenGetLinenum(token),
-            paTokenGetText(token), buff);
+    utError("Line %d, token \"%s\": %s", xyTokenGetLinenum(token),
+            xyTokenGetText(token), buff);
 }
 
 // Initialize lexer.
-void paLexerStart(xyParser parser) {
-    paCurrentParser = parser;
+void paLexerStart() {
     paLine = NULL;
     paTextSize = 256;
     paText = (uint8 *)calloc(paTextSize, sizeof(uint8));
@@ -42,84 +40,6 @@ void paLexerStart(xyParser parser) {
 
 // Stop the lexer.
 void paLexerStop(void) {
-}
-
-// Just print the contents of the token
-void paPrintToken(paToken token) {
-    printf("%-6u ", paTokenGetLinenum(token));
-    switch(paTokenGetType(token)) {
-    case XY_TOK_INT:
-        printf("INTEGER: %llu\n", paTokenGetIntVal(token));
-        break;
-    case XY_TOK_FLOAT:
-        printf("FLOAT: %g\n", paTokenGetFloatVal(token));
-        break;
-    case XY_TOK_STRING:
-        printf("STRING: %s\n", paTokenGetText(token));
-        break;
-    case XY_TOK_NEWLINE:
-        printf("NEWLINE\n");
-        break;
-    case XY_TOK_CHAR:
-        printf("CHAR: %s\n", paTokenGetText(token));
-        break;
-    case XY_TOK_IDENT:
-        printf("IDENT: %s\n", paTokenGetText(token));
-        break;
-    case XY_TOK_OPERATOR:
-        printf("OPERATOR: %s\n", paTokenGetText(token));
-        break;
-    case XY_TOK_COMMENT:
-        printf("COMMENT: %s\n", paTokenGetText(token));
-        break;
-    case XY_TOK_KEYWORD:
-        printf("KEYWORD: %s\n", paTokenGetText(token));
-        break;
-    case XY_TOK_EOF:
-        printf("EOF\n");
-        break;
-    default:
-        utExit("Unknown token type");
-    }
-}
-
-// Create a token object.
-static inline paToken paTokenCreate(xyMtokenType type, uint8 *text) {
-    paToken token = paTokenAlloc();
-    paTokenSetType(token, type);
-    paTokenSetText(token, text, strlen((char *)text) + 1);
-    paTokenSetLinenum(token, paLinenum);
-    utSym sym = utSymNull;
-    if(type == XY_TOK_KEYWORD) {
-        sym = utSymCreate((char *)text);
-    }
-    xyMtoken mtoken = xyParserFindMtoken(paCurrentParser, type, sym);
-    if(mtoken == xyMtokenNull) {
-        mtoken = xyMtokenCreate(paCurrentParser, type, sym);
-    }
-    paTokenSetMtoken(token, mtoken);
-    return token;
-}
-
-// Create a new integer token.
-static inline paToken paIntTokenCreate(uint64 intVal, uint8 *text) {
-    paToken token = paTokenCreate(XY_TOK_INT, text);
-    paTokenSetIntVal(token, intVal);
-    return token;
-}
-
-// Create a new float token.
-static inline paToken paFloatTokenCreate(double floatVal, uint8 *text) {
-    paToken token = paTokenCreate(XY_TOK_FLOAT, text);
-    paTokenSetFloatVal(token, floatVal);
-    return token;
-}
-
-// Create a new operator or keyword token.  Just check to see if the keyword is
-// owned by an operator or staterule.
-static inline paToken paKeywordTokenCreate(xyMtoken mtoken, uint8 *text) {
-    paToken token = paTokenCreate(XY_TOK_KEYWORD, text);
-    return token;
 }
 
 // Skip blanks and control chars other than tab and newline.
@@ -190,7 +110,7 @@ static inline bool readComment(void) {
 }
 
 // Try to read an integer, but if a parsed float is longer, do that.
-static inline paToken readNumber(void) {
+static inline xyToken readNumber(void) {
     uint8 c = *paLine;
     char *floatTail, *intTail;
     double floatVal;
@@ -207,11 +127,11 @@ static inline paToken readNumber(void) {
     if(intTail >= floatTail) {
         addChars(intTail - (char *)paLine);
         addAscii('\0');
-        return paIntTokenCreate(intVal, paText);
+        return xyIntTokenCreate(paCurrentParser, intVal, paLinenum);
     }
     addChars(floatTail - (char *)paLine);
     addAscii('\0');
-    return paFloatTokenCreate(floatVal, paText);
+    return xyFloatTokenCreate(paCurrentParser, floatVal, paLinenum);
 }
 
 // Try to read a string.
@@ -249,7 +169,7 @@ static inline bool readString(void) {
 
 // Try to read an operator.  We check up to 4-character long strings of ASCII
 // punctuation characters, and accept the longest found.
-static inline paToken readOperator(void) {
+static inline xyToken readOperator(void) {
     xyMtoken mtoken;
     uint8 opString[5];
     int length;
@@ -260,23 +180,23 @@ static inline paToken readOperator(void) {
     // length.
     while(length) {
         opString[length] = '\0';
-        mtoken = xyParserFindMtoken(paCurrentParser, XY_TOK_KEYWORD, utSymCreate((char *)opString));
+        mtoken = xyParserFindMtoken(paCurrentParser, XY_KEYWORD, utSymCreate((char *)opString));
         if(mtoken != xyMtokenNull) {
             paLine += length;
-            return paKeywordTokenCreate(mtoken, opString);
+            return xyKeywordTokenCreate(paCurrentParser, utSymCreate((char *)opString), paLinenum);
         }
         length--;
     }
-    return paTokenNull;
+    return xyTokenNull;
 }
 
 // Try to read a keyword.
-static inline paToken lookForKeyword(void) {
-    xyMtoken mtoken = xyParserFindMtoken(paCurrentParser, XY_TOK_KEYWORD, utSymCreate((char *)paText));
+static inline xyToken lookForKeyword(void) {
+    xyMtoken mtoken = xyParserFindMtoken(paCurrentParser, XY_KEYWORD, utSymCreate((char *)paText));
     if(mtoken == xyMtokenNull) {
-        return paTokenNull;
+        return xyTokenNull;
     }
-    return paKeywordTokenCreate(mtoken, paText);
+    return xyKeywordTokenCreate(paCurrentParser, utSymCreate((char *)paText), paLinenum);
 }
 
 // Read an identifier.  This should work so long as the first character is alpha
@@ -295,33 +215,31 @@ static inline bool readIdentifier(void) {
 }
 
 // Read one token, now that we know we've got some text to parse.
-static paToken readToken(void) {
-    paToken token;
-    if(readComment()){
-        return paTokenCreate(XY_TOK_COMMENT, paText);
-    }
+static xyToken readToken(void) {
+    xyToken token;
+    while(readComment());
     if(readString()) {
-        return paTokenCreate(XY_TOK_STRING, paText);
+        return xyStringTokenCreate(paCurrentParser, paText, paLinenum);
     }
     token = readNumber();
-    if(token != paTokenNull) {
+    if(token != xyTokenNull) {
         return token;
     }
     token = readOperator();
-    if(token != paTokenNull) {
+    if(token != xyTokenNull) {
         return token;
     }
     if(readIdentifier()) {
         token = lookForKeyword();
-        if(token != paTokenNull) {
+        if(token != xyTokenNull) {
             return token;
         }
-        return paTokenCreate(XY_TOK_IDENT, paText);
+        return xyIdentTokenCreate(paCurrentParser, utSymCreate((char *)paText), paLinenum);
     }
     // Must just be a single punctuation character
     addChar();
     addAscii('\0');
-    return paTokenCreate(XY_TOK_CHAR, paText);
+    return xyCharTokenCreate(paCurrentParser, (char *)paText, paLinenum);
 }
 
 // Determine if paLine is nothing but spaces, tabs, and a single backslash.
@@ -343,26 +261,26 @@ static inline bool lineIsSlash(void) {
 }
 
 // Parse one token.
-static paToken lexRawToken(void) {
+static xyToken lexRawToken(void) {
     paTextPos = 0;
     if(paLine == NULL) {
         paLine = utf8ReadLine(paFile);
         if(paLine == NULL) {
-            return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
+            return xyEOFTokenCreate(paCurrentParser, paLinenum);
         }
         paLinenum++;
     }
     while(lineIsSlash()) {
         paLine = utf8ReadLine(paFile);
         if(paLine == NULL) {
-            return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
+            return xyEOFTokenCreate(paCurrentParser, paLinenum);
         }
         paLinenum++;
     }
     paLine = skipSpace(paLine);
     if(*paLine == '\0') {
         paLine = NULL;
-        return paTokenCreate(XY_TOK_NEWLINE, (uint8 *)"\n");
+        return xyNewlineTokenCreate(paCurrentParser, paLinenum);
     }
     return readToken();
 }
@@ -399,26 +317,26 @@ static void skipBlankLines(void) {
 }
 
 // Parse a single token.
-paToken paLex(void) {
+xyToken paLex(void) {
     if(paEnding) {
-        return paTokenCreate(XY_TOK_EOF, (uint8 *)"");
+        return xyEOFTokenCreate(paCurrentParser, paLinenum);
     }
     bool hadNewline = paLastWasNewline;
-    paToken token;
-    xyMtokenType type;
+    xyToken token;
+    xyTokenType type;
     if(paLastWasNewline) {
         skipBlankLines();
     }
     token = lexRawToken();
-    type = paTokenGetType(token);
+    type = xyTokenGetType(token);
     // Eat newlines inside grouping operators
-    while(type == XY_TOK_NEWLINE && (paParenDepth > 0 || paBracketDepth > 0)) {
-        paTokenDestroy(token);
+    while(type == XY_NEWLINE && (paParenDepth > 0 || paBracketDepth > 0)) {
+        xyTokenDestroy(token);
         token = lexRawToken();
-        type = paTokenGetType(token);
+        type = xyTokenGetType(token);
     }
-    char *text = (char *)paTokenGetText(token);
-    if(type == XY_TOK_KEYWORD) {
+    char *text = (char *)xyTokenGetText(token);
+    if(type == XY_KEYWORD) {
         if(!strcmp(text, "(")) {
             paParenDepth++;
         } else if(!strcmp(text, "[")) {
@@ -430,10 +348,10 @@ paToken paLex(void) {
         }
     }
     // Add newline to end of file if missing
-    if(type == XY_TOK_EOF && !hadNewline) {
+    if(type == XY_EOF && !hadNewline) {
         paEnding = true;
-        return paTokenCreate(XY_TOK_NEWLINE, (uint8 *)"\n");
+        return xyNewlineTokenCreate(paCurrentParser, paLinenum);
     }
-    paLastWasNewline = type == XY_TOK_NEWLINE;
+    paLastWasNewline = type == XY_NEWLINE;
     return token;
 }

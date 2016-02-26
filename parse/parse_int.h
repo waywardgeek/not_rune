@@ -1,14 +1,14 @@
 #include "database.h"
-#include "padatabase.h"
 #include "utf8.h"
 #include "parse.h"
 
 // Parsing stuff
-void paLexerStart(xyParser parser);
+void paLexerStart(void);
 void paLexerStop(void);
-paToken paLex(void);
-void paPrintToken(paToken token);
-void paError(paToken token, char *message, ...);
+xyToken paLex(void);
+void paPrintToken(xyToken token);
+void paError(xyToken token, char *message, ...);
 
 extern FILE *paFile;
+extern xyParser paCurrentParser;
 extern uint32 paLinenum;

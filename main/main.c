@@ -19,12 +19,12 @@ int main(int argc, char **argv) {
         printf("Unable to read file %s\n", argv[2]);
         return 1;
     }
-    xyValue value = paParse(file, parser);
+    xyToken token = paParse(file, parser);
     printf("Result:\n");
-    xyPrintValue(value);
+    xyPrintToken(token);
     putchar('\n');
-    utAssert(xyValueGetType(value) == XY_LIST);
-    coCompileList(xyValueGetListVal(value), "output.h", "output.c", true);
+    utAssert(xyTokenGetType(token) == XY_LIST);
+    coCompileList(xyTokenGetListVal(token), "output.h", "output.c", true);
     xyDatabaseStop();
     utStop(false);
     return 0;

@@ -45,7 +45,7 @@ void xyPrintMap(xyMap map) {
     case XY_MAP_LIST:
         printListMap(map);
         break;
-    case XY_MAP_VALUE:
+    case XY_MAP_TOKEN:
         printf("$%u", xyMapGetPosition(map) + 1);
         break;
     case XY_MAP_KEYWORD:

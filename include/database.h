@@ -13,19 +13,25 @@ xyAction xyAcceptActionCreate(xyState state, xyMtoken mtoken);
 void xyPrintParser(xyParser parser);
 
 // Mtoken
-xyMtoken xyMtokenCreate(xyParser parser, xyMtokenType type, utSym sym);
+xyMtoken xyMtokenCreate(xyParser parser, xyTokenType type, utSym sym);
 
-// Value
-xyValue xySymValueCreate(utSym sym, uint32 linenum);
-xyValue xyIntValueCreate(int64 value, uint32 linenum);
-xyValue xyUintValueCreate(uint64 value, uint32 linenum);
-xyValue xyFloatValueCreate(double value, uint32 linenum);
-xyValue xyStringValueCreate(uint8 *value, uint32 linenum);
-xyValue xyListValueCreate(xyList list, uint32 linenum);
-xyValue xyBoolValueCreate(bool value, uint32 linenum);
-void xyPrintValue(xyValue value);
+// Token
+xyToken xyIdentTokenCreate(xyParser parser, utSym sym, uint32 linenum);
+xyToken xyIntTokenCreate(xyParser parser, int64 token, uint32 linenum);
+xyToken xyFloatTokenCreate(xyParser parser, double token, uint32 linenum);
+xyToken xyStringTokenCreate(xyParser parser, uint8 *token, uint32 linenum);
+xyToken xyListTokenCreate(xyParser parser, xyList list, uint32 linenum);
+xyToken xyBoolTokenCreate(xyParser parser, bool token, uint32 linenum);
+xyToken xyKeywordTokenCreate(xyParser parser, utSym sym, uint32 linenum);
+xyToken xyIdentTokenCreate(xyParser parser, utSym sym, uint32 linenum);
+xyToken xyCharTokenCreate(xyParser parser, char *text, uint32 linenum);
+xyToken xyEOFTokenCreate(xyParser parser, uint32 linenum);
+xyToken xyNewlineTokenCreate(xyParser parser, uint32 linenum);
+char *xyTokenGetText(xyToken token);
+void xyPrintToken(xyToken token);
 
 // List
+char *xyListGetText(xyList list);
 void xyPrintList(xyList list);
 
 // Map
@@ -37,7 +43,7 @@ void xyPrintState(xyState state);
 
 // Shortcuts
 char *xyMtokenGetName(xyMtoken mtoken);
-char *xyValueTypeGetName(xyValueType type);
+char *xyTokenTypeGetName(xyTokenType type);
 
 // Globals
 extern xyRoot xyTheRoot;
