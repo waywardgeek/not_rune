@@ -50,6 +50,33 @@ static void buildKeywords(void) {
     coKeywordCreate(CO_KWDOT, "dot");
 }
 
+// Just create a global identifier for the string.
+static inline void addGlobal(xyIdent globalScope, char *text) {
+    xyIdentCreate(globalScope, utSymCreate(text));
+}
+
+// Build global identifiers.
+static void buildGlobalIdents(xyIdent globalScope) {
+    addGlobal(globalScope, "bool");
+    addGlobal(globalScope, "true");
+    addGlobal(globalScope, "false");
+    // TODO: add at least uint128, or preferably arbitrary width
+    addGlobal(globalScope, "int");
+    addGlobal(globalScope, "int8");
+    addGlobal(globalScope, "int16");
+    addGlobal(globalScope, "int32");
+    addGlobal(globalScope, "int64");
+    addGlobal(globalScope, "uint");
+    addGlobal(globalScope, "uint8");
+    addGlobal(globalScope, "uint16");
+    addGlobal(globalScope, "uint32");
+    addGlobal(globalScope, "uint64");
+    addGlobal(globalScope, "float");
+    addGlobal(globalScope, "string");
+    addGlobal(globalScope, "char");
+    addGlobal(globalScope, "void");
+}
+
 // Write the header file.
 bool coWriteHeaderFile(xyToken prog, char *outHFileName) {
     coFile = fopen(outHFileName, "w");
@@ -80,14 +107,13 @@ bool coWriteSourceFile(xyToken prog, char *outCFileName) {
 bool coCompileList(xyToken prog, char *outHFileName, char *outCFileName, bool usePointerReferences) {
     coDatabaseStart();
     buildKeywords();
-    xyIdent ident = xyRootGetGlobalIdent(xyTheRoot);
-    if(ident == xyIdentNull) {
-        xyIdent ident = xyIdentCreate(xyIdentNull, utSymNull);
-        xyRootSetGlobalIdent(xyTheRoot, ident);
-    }
-    coBindIdentifiers(prog, ident);
+    xyIdent globalScope = xyIdentCreate(xyIdentNull, utSymNull);
+    xyRootSetGlobalIdent(xyTheRoot, globalScope);
+    buildGlobalIdents(globalScope);
+    coBindIdentifiers(prog, globalScope);
     coWriteHeaderFile(prog, outHFileName);
     coWriteSourceFile(prog, outCFileName);
     coDatabaseStop();
+    xyPrintIdentTree(globalScope);
     return true;
 }

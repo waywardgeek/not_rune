@@ -46,6 +46,7 @@ void xyPrintState(xyState state);
 xyIdent xyLookupIdent(xyIdent parentScope, utSym sym);
 xyIdent xyIdentCreate(xyIdent parentScope, utSym sym);
 xyIdref xyIdrefCreate(xyIdent ident);
+void xyPrintIdentTree(xyIdent ident);
 
 // Shortcuts
 char *xyMtokenGetName(xyMtoken mtoken);
