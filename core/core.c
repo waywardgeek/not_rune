@@ -51,7 +51,7 @@ static void buildKeywords(void) {
 }
 
 // Write the header file.
-bool coWriteHeaderFile(xyList prog, char *outHFileName) {
+bool coWriteHeaderFile(xyToken prog, char *outHFileName) {
     coFile = fopen(outHFileName, "w");
     if(coFile == NULL) {
         utExit("Unable to open C header file %s for writing", outHFileName);
@@ -62,7 +62,7 @@ bool coWriteHeaderFile(xyList prog, char *outHFileName) {
 }
 
 // Write the source file.
-bool coWriteSourceFile(xyList prog, char *outCFileName) {
+bool coWriteSourceFile(xyToken prog, char *outCFileName) {
     coFile = fopen(outCFileName, "w");
     if(coFile == NULL) {
         utExit("Unable to open C source file %s for writing", outCFileName);
@@ -77,15 +77,17 @@ bool coWriteSourceFile(xyList prog, char *outCFileName) {
 // class properties are stored in arrays, indexed by the reference.  When
 // false, class properties are stored in contiguous structures, and references
 // are pointers.
-bool coCompileList(xyList prog, char *outHFileName, char *outCFileName, bool usePointerReferences) {
+bool coCompileList(xyToken prog, char *outHFileName, char *outCFileName, bool usePointerReferences) {
     coDatabaseStart();
     buildKeywords();
-    if(!coAnalyze(prog) ||
-            !coWriteHeaderFile(prog, outHFileName) ||
-            !coWriteSourceFile(prog, outCFileName)) {
-        coDatabaseStop();
-        return false;
+    xyIdent ident = xyRootGetGlobalIdent(xyTheRoot);
+    if(ident == xyIdentNull) {
+        xyIdent ident = xyIdentCreate(xyIdentNull, utSymNull);
+        xyRootSetGlobalIdent(xyTheRoot, ident);
     }
+    coBindIdentifiers(prog, ident);
+    coWriteHeaderFile(prog, outHFileName);
+    coWriteSourceFile(prog, outCFileName);
     coDatabaseStop();
     return true;
 }

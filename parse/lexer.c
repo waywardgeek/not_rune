@@ -16,17 +16,6 @@ static bool paLastWasNewline;
 static bool paEnding;
 static uint32 paParenDepth, paBracketDepth;
 
-// Print out an error message and exit.
-void paError(xyToken token, char *message, ...) {
-    char *buff;
-    va_list ap;
-    va_start(ap, message);
-    buff = utVsprintf((char *)message, ap);
-    va_end(ap);
-    utError("Line %d, token \"%s\": %s", xyTokenGetLinenum(token),
-            xyTokenGetText(token), buff);
-}
-
 // Initialize lexer.
 void paLexerStart() {
     paLine = NULL;

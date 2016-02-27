@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     xyPrintToken(token);
     putchar('\n');
     utAssert(xyTokenGetType(token) == XY_LIST);
-    coCompileList(xyTokenGetListVal(token), "output.h", "output.c", true);
+    coCompileList(token, "output.h", "output.c", true);
     xyDatabaseStop();
     utStop(false);
     return 0;

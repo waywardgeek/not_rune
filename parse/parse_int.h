@@ -7,7 +7,6 @@ void paLexerStart(void);
 void paLexerStop(void);
 xyToken paLex(void);
 void paPrintToken(xyToken token);
-void paError(xyToken token, char *message, ...);
 
 extern FILE *paFile;
 extern xyParser paCurrentParser;

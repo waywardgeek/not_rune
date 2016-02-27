@@ -32,9 +32,10 @@ void xperror(
 %token <symVal> NONTERM KEYWORD
 %token <intVal> INTEGER
 
-%type <mapVal> map concatExpr concatExprs appendExpr tokenExpr listExpr
+%type <mapVal> map concatExpr concatExprs appendExpr attributeExpr tokenExpr listExpr
 
 %token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWDOUBLE_COLON KWARROW
+%token KWSCOPED KWDEF KWREF
 
 %%
 
@@ -108,12 +109,30 @@ concatExpr: appendExpr
 }
 ;
 
-appendExpr: tokenExpr
-| appendExpr '.' tokenExpr
+appendExpr: attributeExpr
+| appendExpr '.' attributeExpr
 {
     $$ = xyMapCreate(xpCurrentParser, XY_MAP_APPEND);
     xyMapAppendMap($$, $1);
     xyMapAppendMap($$, $3);
+}
+;
+
+attributeExpr: tokenExpr
+| attributeExpr ':' KWSCOPED
+{
+    xyMapSetScoped($1, true);
+    $$ = $1;
+}
+| attributeExpr ':' KWDEF
+{
+    xyMapSetDef($1, true);
+    $$ = $1;
+}
+| attributeExpr ':' KWREF
+{
+    xyMapSetRef($1, true);
+    $$ = $1;
 }
 ;
 

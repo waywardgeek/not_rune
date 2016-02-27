@@ -29,6 +29,7 @@ xyToken xyEOFTokenCreate(xyParser parser, uint32 linenum);
 xyToken xyNewlineTokenCreate(xyParser parser, uint32 linenum);
 char *xyTokenGetText(xyToken token);
 void xyPrintToken(xyToken token);
+void xyError(xyToken token, char *message, ...);
 
 // List
 char *xyListGetText(xyList list);
@@ -40,6 +41,11 @@ void xyPrintMap(xyMap map);
 
 // State
 void xyPrintState(xyState state);
+
+// Ident
+xyIdent xyLookupIdent(xyIdent parentScope, utSym sym);
+xyIdent xyIdentCreate(xyIdent parentScope, utSym sym);
+xyIdref xyIdrefCreate(xyIdent ident);
 
 // Shortcuts
 char *xyMtokenGetName(xyMtoken mtoken);

@@ -69,7 +69,7 @@ static xyToken executeConcatMap(xyMap map, xyTokenArray tokens, uint32 statesToP
     xyToken rightToken = executeMap(rightMap, tokens, statesToPop, token);
     if(leftToken == xyTokenNull || rightToken == xyTokenNull ||
             xyTokenGetType(leftToken) != XY_LIST || xyTokenGetType(rightToken) != XY_LIST) {
-        paError(token, "Expected two list tokens in concat map");
+        xyError(token, "Expected two list tokens in concat map");
     }
     xyList leftList = xyTokenGetListVal(leftToken);
     xyList rightList = xyTokenGetListVal(rightToken);
@@ -88,7 +88,7 @@ static xyToken executeAppendMap(xyMap map, xyTokenArray tokens, uint32 statesToP
     xyToken leftToken = executeMap(leftMap, tokens, statesToPop, token);
     xyToken rightToken = executeMap(rightMap, tokens, statesToPop, token);
     if(leftToken == xyTokenNull || xyTokenGetType(leftToken) != XY_LIST) {
-        paError(token, "Expected list left token in append map");
+        xyError(token, "Expected list left token in append map");
     }
     if(rightToken != xyTokenNull) {
         xyListAppendToken(xyTokenGetListVal(leftToken), rightToken);
@@ -148,26 +148,57 @@ static xyToken executeDefaultMap(xyTokenArray tokens, uint32 statesToPop, xyToke
     return xyListTokenCreate(paCurrentParser, list, minLinenum);
 }
 
+// Apply map attributes to the token.
+static void applyMapAttributes(xyMap map, xyToken token) {
+    if(xyMapScoped(map)) {
+        xyTokenType type = xyTokenGetType(token);
+        if(type == XY_LIST) {
+            xyListSetScoped(xyTokenGetListVal(token), true);
+        } else if(type == XY_IDENT) {
+            xyTokenSetType(token, XY_IDSCOPED);
+        } else {
+            xyError(token, "'scoped' can only be applied to lists and IDENTs");
+        }
+    } else if(xyMapDef(map)) {
+        if(xyTokenGetType(token) != XY_IDENT) {
+            xyError(token, "'def' can only be applied to IDENTs");
+        }
+        xyTokenSetType(token, XY_IDDEF);
+    } else if(xyMapRef(map)) {
+        if(xyTokenGetType(token) != XY_IDENT) {
+            xyError(token, "'ref' can only be applied to IDENTs");
+        }
+        xyTokenSetType(token, XY_IDREF);
+    }
+}
+
 // Execute a map expression to combinethe tokens on the top of the stack.
 static xyToken executeMap(xyMap map, xyTokenArray tokens, uint32 statesToPop, xyToken token) {
     if(map == xyMapNull) {
         return executeDefaultMap(tokens, statesToPop, token);
     }
+    xyToken value;
     switch(xyMapGetType(map)) {
     case XY_MAP_CONCAT:
-        return executeConcatMap(map, tokens, statesToPop, token);
+        value = executeConcatMap(map, tokens, statesToPop, token);
+        break;
     case XY_MAP_APPEND:
-        return executeAppendMap(map, tokens, statesToPop, token);
+        value = executeAppendMap(map, tokens, statesToPop, token);
+        break;
     case XY_MAP_LIST:
-        return executeListMap(map, tokens, statesToPop, token);
+        value = executeListMap(map, tokens, statesToPop, token);
+        break;
     case XY_MAP_TOKEN:
-        return executeTokenMap(map, tokens, statesToPop);
+        value = executeTokenMap(map, tokens, statesToPop);
+        break;
     case XY_MAP_KEYWORD:
-        return xyKeywordTokenCreate(paCurrentParser, xyMapGetSym(map), xyTokenGetLinenum(token));
+        value = xyKeywordTokenCreate(paCurrentParser, xyMapGetSym(map), xyTokenGetLinenum(token));
+        break;
     default:
         utExit("Unknown map type");
     }
-    return xyTokenNull; // Dummy return
+    applyMapAttributes(map, value);
+    return value;
 }
 
 // Parse input tokens util we accept, or find an error.
@@ -180,7 +211,7 @@ static xyToken parseUntilAccept(xyParser parser, xyStateArray states, xyTokenArr
         xyMtoken mtoken = xyTokenGetMtoken(token);
         xyAction action = xyStateFindAction(state, mtoken);
         if(action == xyActionNull) {
-            paError(token, "Syntax error");
+            xyError(token, "Syntax error");
         }
         xyMtoken reduceMtoken;
         xyToken reducedToken;

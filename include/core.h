@@ -1,1 +1,1 @@
-bool coCompileList(xyList prog, char *outHFileName, char *outCFileName, bool usePointerReferences);
+bool coCompileList(xyToken prog, char *outHFileName, char *outCFileName, bool usePointerReferences);

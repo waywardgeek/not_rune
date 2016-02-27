@@ -11,12 +11,13 @@ CFLAGS=-Wall -Wno-unused-function -g -std=c11 -D_POSIX_C_SOURCE -DDD_DEBUG -Iinc
 LIBS=-lddutil-dbg
 
 SOURCE= \
-core/analyze.c \
+core/bind.c \
 core/codatabase.c \
 core/core.c \
 core/coutil.c \
 database/action.c \
 database/debugging.c \
+database/ident.c \
 database/list.c \
 database/map.c \
 database/mtoken.c \

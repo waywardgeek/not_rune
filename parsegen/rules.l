@@ -74,6 +74,9 @@ static void noDebug(char *foo, ...) {}
 <INITIAL>NEWLINE                { myToken(KWNEWLINE); }
 <INITIAL>"::"                   { myToken(KWDOUBLE_COLON); }
 <INITIAL>"->"                   { myToken(KWARROW); }
+<INITIAL>"scoped"               { myToken(KWSCOPED); }
+<INITIAL>"def"                  { myToken(KWDEF); }
+<INITIAL>"ref"                  { myToken(KWREF); }
 
 <INITIAL>\"([^"]|\\.)*\"        { myDebug("KEYWORD %s\n", xptext);
                                   xplval.symVal = utSymCreate(unmunge(xptext));

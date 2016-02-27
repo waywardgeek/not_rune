@@ -14,7 +14,7 @@ statement: executableStatement
 | declaration
 ;
 
-statementList: "(" statements ")" -> $2
+statementList: "(" statements ")" -> $2:scoped
 ;
 
 statements: -> ()
@@ -71,26 +71,26 @@ optDefaultCase:
 | "(" "default" statementList ")"
 ;
 
-declarations: -> ()
-| declarations declaration -> $1.$2
-;
-
 declaration: varDecl
 | functionDecl
 | classDecl
 ;
 
-varDecl: "(" "var" type IDENT expr ")" -> ("var" $3 $4 $5)
+varDecl: "(" "var" type IDENT optExpr ")" -> ("var" $3 $4:def $5)
 ;
 
-functionDecl: "(" "func" type IDENT "(" functionParamDecls ")" statementList ")" -> ("func" $3 $4 $6 $8)
+functionDecl: "(" "func" type IDENT "(" functionParamDecls ")" statementList ")" -> ("func" $3 $4:scoped $6 $8)
 ;
 
 functionParamDecls: -> ()
-| functionParamDecls type IDENT -> $1.$2.$3
+| functionParamDecls type IDENT -> $1.$2.$3:def
 ;
 
-classDecl: "(" "class" declarations ")" -> ("class").$3
+classDecl: "(" "class" IDENT classDeclarations ")" -> ("class" $3:scoped).$4
+;
+
+classDeclarations: -> ()
+| classDeclarations declaration -> $1.$2
 ;
 
 functionCall: "(" path exprs ")" -> ($2)+$3
@@ -195,10 +195,10 @@ paths: -> ()
 | paths path -> $1.$2
 ;
 
-path: IDENT
+path: IDENT -> $1:ref
 | "(" "dot" idents ")" -> ("dot").$3
 ;
 
 idents: -> ()
-| idents IDENT -> $1.$2
+| idents IDENT -> $1.$2:ref
 ;

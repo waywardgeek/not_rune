@@ -2,7 +2,7 @@
 #include "core.h"
 #include "codatabase.h"
 
-bool coAnalyze(xyList prog);
+void coBindIdentifiers(xyToken token, xyIdent parentScope);
 
 // Utility module
 void coUtilStart(void);
