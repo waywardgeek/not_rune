@@ -4,4 +4,4 @@
     (return (* n (fact (- n 1))))))
 
 (func void main() (
-    (fact 6)))
+    (var uint result (fact 6))))

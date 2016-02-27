@@ -45,8 +45,8 @@ xyIdent xyLookupIdent(xyIdent parentScope, utSym sym) {
         if(ident != xyIdentNull) {
             return ident;
         }
-        ident = xyIdentGetIdent(parentScope);
-    } while(ident != xyIdentNull);
+        parentScope = xyIdentGetIdent(parentScope);
+    } while(parentScope != xyIdentNull);
     return xyIdentNull;
 }
 

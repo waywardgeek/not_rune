@@ -5,6 +5,10 @@ static void bindListIdentifiers(xyList list, xyIdent ident) {
     xyToken token;
     xyForeachListToken(list, token) {
         coBindIdentifiers(token, ident);
+        if(xyListGetIdent(list) != xyIdentNull) {
+            // This happens when hitting scopped identifiers
+            ident = xyListGetIdent(list);
+        }
     } xyEndListToken;
     if(xyListScoped(list) && xyListGetIdent(list) == xyIdentNull) {
         // This is an unnamed anonymous scope.
