@@ -177,13 +177,37 @@ relationalOp: "=="
 | "<="
 ;
 
-arithExpr: mulExpr
-| arithExpr "+" mulExpr -> ("+" $1 $3)
-| arithExpr "-" mulExpr -> ("+" $1 $3)
+arithExpr: addExpr
+| mulExpr "<<" addExpr -> ("<<" $1 $3)
+| mulExpr ">>" addExpr -> (">>" $1 $3)
 ;
 
-mulExpr: basicArithExpr
-| mulExpr "*" basicArithExpr -> ("*" $1 $3)
+addExpr: mulExpr
+| addExpr "+" mulExpr -> ("+" $1 $3)
+| addExpr "-" mulExpr -> ("-" $1 $3)
+;
+
+mulExpr: bitOrExpr
+| mulExpr "*" bitOrExpr -> ("*" $1 $3)
+| mulExpr "/" bitOrExpr -> ("/" $1 $3)
+| mulExpr "%" bitOrExpr -> ("%" $1 $3)
+;
+
+bitOrExpr: bitXorExpr
+| bitOrExpr "|" bitXorExpr
+;
+
+bitXorExpr: bitAndExpr
+| bitXorExpr "^" bitAndExpr
+;
+
+bitAndExpr: unaryArithExpr
+| bitAndExpr "&" unaryArithExpr
+;
+
+unaryArithExpr: basicArithExpr
+| "-" basicArithExpr -> ("-" $2)
+| "~" basicArithExpr -> ("~" $2)
 ;
 
 basicArithExpr: accessExpr
@@ -191,6 +215,7 @@ basicArithExpr: accessExpr
 | INTEGER
 | FLOAT
 | newExpr
+| "(" expr ")"
 ;
 
 constArithExpr: path
@@ -199,92 +224,3 @@ constArithExpr: path
 
 newExpr: "new" path -> ("new" $2)
 ;
-
-/*
-expr: boolOpExpr
-| arithOpExpr
-| accessExpr
-| functionCall
-| newExpr
-| INTEGER
-| FLOAT
-;
-
-accessExpr: IDENT -> $1:ref
-| accessExpr "[" arithExpr "]" -> ("index" $1 $3)
-| accessExpr "." IDENT -> ("dot" $1 $3:dot)
-;
-
-boolExpr: boolOpExpr
-| accessExpr
-| functionCall
-;
-
-boolOpExpr: logicalExpr
-;
-
-logicalExpr: andExpr
-| logicalExpr "||" andExpr -> ("||" $1 $3)
-;
-
-andExpr: notExpr
-| andExpr "&&" notExpr -> ("&&" $1 $3)
-;
-
-notExpr: relationalExpr
-| "!" accessExpr -> ("!" $2)
-| "!" "(" boolExpr ")" -> ("!" $3)
-;
-
-relationalExpr: arithExpr "==" Exprexpr -> ("==" $1 $3)
-| expr "!=" expr -> ("!=" $1 $3)
-| relationalOp arithExpr arithExpr ")" -> ($2 $3 $4)
-;
-
-relationalOp: ">"
-| "<"
-| ">="
-| "<="
-;
-
-arithExpr: arithOpExpr
-| accessExpr
-| functionCall
-| INTEGER
-| FLOAT
-;
-
-arithOpExpr: "(" multiArithOp arithExprs ")" -> ($2).$3
-| "(" binaryArithOp arithExpr arithExpr ")" -> ($2 $3 $4)
-| "(" unaryArithOp arithExpr ")" -> ($2 $3)
-| "(" "-" arithExpr arithExpr ")" -> ("-" $3 $4)
-| "(" "-" arithExpr ")" -> ("-" $3)
-;
-
-arithExprs: -> ()
-| arithExprs arithExpr -> $1.$2
-;
-
-multiArithOp: "+"
-| "*"
-| "&"
-| "|"
-| "^"
-;
-
-binaryArithOp: "/"
-| "%"
-| "<<"
-| ">>"
-;
-
-unaryArithOp: "~"
-;
-
-constArithExpr: path
-| INTEGER
-;
-
-newExpr: "(" "new" path ")" -> ("new" $3)
-;
-*/
