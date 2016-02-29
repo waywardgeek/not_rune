@@ -57,6 +57,8 @@ int xpwrap(void)
 
 static void noDebug(char *foo, ...) {}
 
+static uint32 xpCommentDepth;
+
 %}
 
 %Start comment
@@ -65,6 +67,17 @@ static void noDebug(char *foo, ...) {}
 <INITIAL>^[ \t]*"//".*          ;
 <INITIAL>[ \t]+                 ;
 <INITIAL>\n                     { xpLineNum++; }
+<INITIAL>"/*"                   { myDebug("Start block comment...\n");
+                                  xpCommentDepth = 1;
+                                  BEGIN comment; }
+<comment>"/*"                   { xpCommentDepth++; }
+<comment>"*/"                   { myDebug("End block comment\n");
+                                  xpCommentDepth--;
+                                  if (xpCommentDepth == 0) {
+                                     BEGIN INITIAL;
+                                  } }
+<comment>.                      ;
+<comment>"\n"                   { xpLineNum++; }
 
 <INITIAL>INTEGER                { myToken(KWINTEGER); }
 <INITIAL>FLOAT                  { myToken(KWFLOAT); }

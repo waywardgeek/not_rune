@@ -53,12 +53,12 @@ class Token array
         uint32 charVal: CHAR
         sym symVal: IDENT IDDEF IDREF IDSCOPED IDDOT
     union type
-        Ident ident cascade: IDDEF IDSCOPED
-        Idref idref cascade: IDREF IDDOT
+        Ident ident: IDDEF IDSCOPED
+        Idref idref: IDREF IDDOT
 
 class List
     bool scoped
-    Ident ident cascade
+    Ident ident
 
 schema Parse
 
