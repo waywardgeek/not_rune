@@ -35,7 +35,7 @@ void xperror(
 %type <mapVal> map concatExpr concatExprs appendExpr attributeExpr tokenExpr listExpr
 
 %token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWDOUBLE_COLON KWARROW
-%token KWSCOPED KWDEF KWREF
+%token KWSCOPED KWDEF KWREF KWDOT
 
 %%
 
@@ -132,6 +132,11 @@ attributeExpr: tokenExpr
 | attributeExpr ':' KWREF
 {
     xyMapSetRef($1, true);
+    $$ = $1;
+}
+| attributeExpr ':' KWDOT
+{
+    xyMapSetDot($1, true);
     $$ = $1;
 }
 ;

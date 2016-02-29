@@ -27,7 +27,6 @@ void coBindIdentifiers(xyToken token, xyIdent parentScope) {
         xyIdent ident = xyIdentCreate(parentScope, xyTokenGetSymVal(token));
         xyTokenSetIdent(token, ident);
     } else if(type == XY_IDREF) {
-        // TODO: deal with paths.
         utAssert(xyTokenGetIdref(token) == xyIdrefNull);
         utSym sym = xyTokenGetSymVal(token);
         xyIdent ident = xyLookupIdent(parentScope, sym);
@@ -36,6 +35,8 @@ void coBindIdentifiers(xyToken token, xyIdent parentScope) {
         }
         xyIdref idref = xyIdrefCreate(ident);
         xyTokenSetIdref(token, idref);
+    } else if(type == XY_IDDOT) {
+        // TODO: Deal with dotted paths when we do type propagation
     } else if(type == XY_IDSCOPED) {
         utAssert(xyTokenGetIdent(token) == xyIdentNull);
         xyIdent ident = xyIdentCreate(parentScope, xyTokenGetSymVal(token));

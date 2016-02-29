@@ -12,6 +12,7 @@ enum TokenType XY_
     IDREF
     IDDEF
     IDSCOPED
+    IDDOT
     LIST
     NEWLINE
     EOF
@@ -50,14 +51,14 @@ class Token array
         String stringVal cascade: STRING
         List listVal cascade: LIST
         uint32 charVal: CHAR
-        sym symVal: IDENT IDDEF IDREF IDSCOPED
+        sym symVal: IDENT IDDEF IDREF IDSCOPED IDDOT
     union type
         Ident ident cascade: IDDEF IDSCOPED
-        Idref idref cascade: IDREF
+        Idref idref cascade: IDREF IDDOT
 
 class List
     bool scoped
-    Ident ident
+    Ident ident cascade
 
 schema Parse
 
@@ -82,6 +83,7 @@ class Map
     bool scoped
     bool def
     bool ref
+    bool dot
     union type
         uint32 position: TOKEN
         sym Sym: KEYWORD

@@ -169,6 +169,11 @@ static void applyMapAttributes(xyMap map, xyToken token) {
             xyError(token, "'ref' can only be applied to IDENTs");
         }
         xyTokenSetType(token, XY_IDREF);
+    } else if(xyMapDot(map)) {
+        if(xyTokenGetType(token) != XY_IDENT) {
+            xyError(token, "'dot' can only be applied to IDENTs");
+        }
+        xyTokenSetType(token, XY_IDDOT);
     }
 }
 

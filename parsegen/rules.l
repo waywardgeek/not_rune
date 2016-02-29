@@ -77,6 +77,7 @@ static void noDebug(char *foo, ...) {}
 <INITIAL>"scoped"               { myToken(KWSCOPED); }
 <INITIAL>"def"                  { myToken(KWDEF); }
 <INITIAL>"ref"                  { myToken(KWREF); }
+<INITIAL>"dot"                  { myToken(KWDOT); }
 
 <INITIAL>\"([^"]|\\.)*\"        { myDebug("KEYWORD %s\n", xptext);
                                   xplval.symVal = utSymCreate(unmunge(xptext));
