@@ -3,5 +3,5 @@
 	(return 1)))
     (return (* n (fact (- n 1))))))
 
-(func void main() (
+(func main() (
     (var uint result (fact 6))))

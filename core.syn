@@ -100,6 +100,8 @@ varDecl: "(" "var" type IDENT optExpr ")" -> ("var" $3 $4:def $5)
 
 functionDecl: "(" "func" type IDENT "(" functionParamDecls ")" statementList ")"
     -> ("func" $3 $4:scoped $6 $8)
+| "(" "func" IDENT "(" functionParamDecls ")" statementList ")"
+    -> ("func" null $3:scoped $5 $7)
 ;
 
 functionParamDecls: -> ()
