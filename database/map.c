@@ -51,6 +51,9 @@ void xyPrintMap(xyMap map) {
     case XY_MAP_KEYWORD:
         printf("\"%s\"", utSymGetName(xyMapGetSym(map)));
         break;
+    case XY_MAP_NULL:
+        printf("null");
+        break;
     default:
         utExit("Unknown map type");
     }

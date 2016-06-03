@@ -45,6 +45,7 @@ int xpwrap(void)
     return 1;
 }
 
+#define XP_DEBUG
 #ifdef XP_DEBUG
 #define myDebug printf
 #define myToken(token) {printf("%s\n", xptext); return (token);}
@@ -91,6 +92,7 @@ static uint32 xpCommentDepth;
 <INITIAL>"def"                  { myToken(KWDEF); }
 <INITIAL>"ref"                  { myToken(KWREF); }
 <INITIAL>"dot"                  { myToken(KWDOT); }
+<INITIAL>"null"                 { myToken(KWNULL); }
 
 <INITIAL>\"([^"]|\\.)*\"        { myDebug("KEYWORD %s\n", xptext);
                                   xplval.symVal = utSymCreate(unmunge(xptext));

@@ -145,6 +145,11 @@ xyToken xyNewlineTokenCreate(xyParser parser, uint32 linenum) {
     return tokenCreate(parser, XY_NEWLINE, utSymNull, linenum);
 }
 
+// Create a new null token.
+xyToken xyNullTokenCreate(xyParser parser, uint32 linenum) {
+    return tokenCreate(parser, XY_NULL, utSymNull, linenum);
+}
+
 // Convert 4 bytes to a Uint32 big-endian.
 static uint32 strToUint32(char *text) {
     uint32 value = 0;

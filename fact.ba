@@ -5,6 +5,6 @@ func uint fact(uint n) {
     return n*fact(n - 1)
 }
 
-func void main() {
+func main() {
     var uint result = fact(6)
 }

@@ -81,7 +81,7 @@ static xyToken executeConcatMap(xyMap map, xyTokenArray tokens, uint32 statesToP
     return leftToken;
 }
 
-// Execute an apped map.
+// Execute an append map.
 static xyToken executeAppendMap(xyMap map, xyTokenArray tokens, uint32 statesToPop, xyToken token) {
     xyMap leftMap = xyMapGetFirstMap(map);
     xyMap rightMap = xyMapGetNextMapMap(leftMap);
@@ -198,6 +198,9 @@ static xyToken executeMap(xyMap map, xyTokenArray tokens, uint32 statesToPop, xy
         break;
     case XY_MAP_KEYWORD:
         value = xyKeywordTokenCreate(paCurrentParser, xyMapGetSym(map), xyTokenGetLinenum(token));
+        break;
+    case XY_MAP_NULL:
+        value = xyNullTokenCreate(paCurrentParser, xyTokenGetLinenum(token));
         break;
     default:
         utExit("Unknown map type");

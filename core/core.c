@@ -74,7 +74,7 @@ static void buildGlobalIdents(xyIdent globalScope) {
     addGlobal(globalScope, "float");
     addGlobal(globalScope, "string");
     addGlobal(globalScope, "char");
-    addGlobal(globalScope, "void");
+    addGlobal(globalScope, "null");
 }
 
 // Write the header file.

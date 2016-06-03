@@ -106,6 +106,8 @@ optInitializer:
 
 functionDecl: "func" type IDENT "(" functionParamDecls ")" statementList
     -> ("func" $2 $3:scoped $5 $7)
+| "func" IDENT "(" functionParamDecls ")" statementList
+    -> ("func" null $2:scoped $4 $6)
 ;
 
 functionParamDecls: -> ()

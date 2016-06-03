@@ -27,6 +27,7 @@ xyToken xyIdentTokenCreate(xyParser parser, utSym sym, uint32 linenum);
 xyToken xyCharTokenCreate(xyParser parser, char *text, uint32 linenum);
 xyToken xyEOFTokenCreate(xyParser parser, uint32 linenum);
 xyToken xyNewlineTokenCreate(xyParser parser, uint32 linenum);
+xyToken xyNullTokenCreate(xyParser parser, uint32 linenum);
 char *xyTokenGetText(xyToken token);
 void xyPrintToken(xyToken token);
 void xyError(xyToken token, char *message, ...);

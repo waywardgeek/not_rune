@@ -16,6 +16,7 @@ enum TokenType XY_
     LIST
     NEWLINE
     EOF
+    NULL
 
 enum ActionType XY_
     GOTO
@@ -29,6 +30,7 @@ enum MapType XY_MAP_
     LIST
     TOKEN
     KEYWORD
+    NULL
 
 class Root
 
