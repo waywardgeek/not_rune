@@ -180,7 +180,7 @@ arithExpr: arithOpExpr
 | FLOAT
 ;
 
-arithOpExpr: "(" multiArithOp arithExprs ")" -> ($2).$3
+arithOpExpr: "(" multiArithOp arithExprs ")" -> ($2)+$3
 | "(" binaryArithOp arithExpr arithExpr ")" -> ($2 $3 $4)
 | "(" unaryArithOp arithExpr ")" -> ($2 $3)
 | "(" "-" arithExpr arithExpr ")" -> ("-" $3 $4)

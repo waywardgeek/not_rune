@@ -28,6 +28,7 @@ char *xyTokenTypeGetName(xyTokenType type) {
     case XY_IDSCOPED: return "IDSCOPED";
     case XY_NEWLINE: return "NEWLINE";
     case XY_EOF: return "EOF";
+    case XY_NULL: return "null";
     default:
         utExit("Unknown token type");
     }
@@ -67,6 +68,8 @@ char *xyTokenGetText(xyToken token) {
         return utSprintf("NEWLINE");
     case XY_EOF:
         return utSprintf("EOF");
+    case XY_NULL:
+        return utSprintf("null");
     default:
         utExit("Unknown token type");
     }
