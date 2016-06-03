@@ -45,7 +45,7 @@ class Token array
     TokenType type
     uint32 linenum
     union type
-        int64 intVal: INT  // Convert this to bigints
+        int64 intVal: INT  // TODO: Convert this to bigints
         double floatVal: FLOAT
         bool boolVal: BOOL
         String stringVal cascade: STRING
