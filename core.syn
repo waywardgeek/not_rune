@@ -29,7 +29,7 @@ statement: executableStatement
 | declaration
 ;
 
-statementList: "(" statements ")" -> $2:scoped
+statementList: "(" statements ")" -> $2
 ;
 
 statements: -> ()
@@ -94,8 +94,7 @@ declaration: varDecl
 | classDecl
 ;
 
-varDecl: "(" "var" type IDENT optExpr ")" -> ("var" $3 $4:def $5)
-| "(" "auto" IDENT expr ")" -> ("auto" $3:def $4)
+varDecl: "(" "var" IDENT optExpr ")" -> ("var" $3:def $4)
 ;
 
 functionDecl: "(" "func" type IDENT "(" functionParamDecls ")" statementList ")"

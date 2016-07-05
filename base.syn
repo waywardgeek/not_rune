@@ -29,7 +29,7 @@ statement: executableStatement
 | declaration
 ;
 
-statementList: "{" NEWLINE statements "}" -> $3:scoped
+statementList: "{" NEWLINE statements "}" -> $3
 ;
 
 statements: -> ()
@@ -97,17 +97,17 @@ declaration: varDecl
 | classDecl
 ;
 
-varDecl: "var" type IDENT optInitializer -> ("var" $2 $3:def $4)
+varDecl: "var" IDENT optInitializer -> ("var" $2:def $3)
 ;
 
 optInitializer:
 | "=" expr -> $2
 ;
 
-functionDecl: "func" type IDENT "(" functionParamDecls ")" "{" NEWLINE statements "}"
-    -> ("func" $2 $3:scoped $5 $9)
-| "func" IDENT "(" functionParamDecls ")"  "{" NEWLINE statements "}"
-    -> ("func" null $2:scoped $4 $8)
+functionDecl: "func" type IDENT "(" functionParamDecls ")" statementList
+    -> ("func" $2 $3:scoped $5 $7)
+| "func" IDENT "(" functionParamDecls ")" statementList
+    -> ("func" null $2:scoped $4 $6)
 ;
 
 functionParamDecls: -> ()
