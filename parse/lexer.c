@@ -223,7 +223,7 @@ static xyToken readToken(void) {
         if(token != xyTokenNull) {
             return token;
         }
-        return xyIdentTokenCreate(paCurrentParser, utSymCreate((char *)paText), paLinenum);
+        return xyIdentTokenCreate(paCurrentParser, XY_IDENT, utSymCreate((char *)paText), paLinenum);
     }
     // Must just be a single punctuation character
     addChar();

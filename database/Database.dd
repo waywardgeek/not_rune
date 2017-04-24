@@ -8,15 +8,17 @@ enum TokenType XY_
     FLOAT
     STRING
     CHAR
-    IDENT
-    IDREF
-    IDDEF
-    IDSCOPED
-    IDDOT
     LIST
     NEWLINE
     EOF
     NULL
+    DOT  // Used to change the current scope to that of the type of the expression.
+    IDENT  // Used only when parsing raw tokens.  This is converted when matched.
+    IDREF  // Refers to an identifier declared in the current scope.
+    IDSCOPE  // Declares a sub-scope, but not a function or type.
+    IDFUNC  // Declares a function.
+    IDTYPE  // Declares a type.
+    IDVAR  // Declars a variable.
 
 enum ActionType XY_
     GOTO
@@ -35,10 +37,6 @@ enum MapType XY_MAP_
 class Root
 
 class Ident
-    // Either an IDDEF, IDSCOPED, or LIST if anonymous
-    Token token
-
-class Idref
 
 class String
     array uint8 text
@@ -53,13 +51,9 @@ class Token array
         String stringVal cascade: STRING
         List listVal cascade: LIST
         uint32 charVal: CHAR
-        sym symVal: IDENT IDDEF IDREF IDSCOPED IDDOT
-    union type
-        Ident ident: IDDEF IDSCOPED
-        Idref idref: IDREF IDDOT
+        sym symVal: IDREF IDSCOPE IDFUNC IDTYPE IDVAR
 
 class List
-    bool scoped
     Ident ident
 
 schema Parse
@@ -67,7 +61,7 @@ schema Parse
 class Parser
 
 class Mtoken
-    TokenType type
+    TokenType type  // All XY_ID variants are represented with XY_IDENT
     sym Sym
 
 class State array
@@ -82,17 +76,14 @@ class Action
 
 class Map
     MapType type
-    bool scoped
-    bool def
-    bool ref
-    bool dot
     union type
         uint32 position: TOKEN
         sym Sym: KEYWORD
 
 relationship Root Ident:Global cascade
-relationship Ident Ident hashed cascade
-relationship Ident Idref doubly_linked mandatory
+relationship Ident:Outer Ident:Inner hashed cascade
+relationship Ident:Decl Ident:Inst doubly_linked cascade
+relationship Token Ident cascade
 relationship Root Parser hashed mandatory
 relationship List Token array cascade
 relationship Parser Mtoken hashed Type Sym mandatory

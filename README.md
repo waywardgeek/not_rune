@@ -2,12 +2,13 @@ Rune is a system programming langauge under development.  It is intended to be:
 
 - faster than C
 - simple like Python
+- relational lik SQL
 - safe like Java
 - highly extensible
 
 In short:
 
-    Rune = Python + LALR(1) parsing + SoA memory layout
+    Rune = Python + Dynamic extensions + DataDraw
 
 Rune is expected to outperform C on most memory-intensive tasks.  Rune will use
 a structure-of-arrays memory layout, rather than array-of-structures.  This
@@ -46,11 +47,18 @@ for complex number support will be contained in a library.
 Rune is intended to be safer than system programming languages such as C and
 C++.  Buffer overflows are either checked at runtime or optimizedout at compile
 time, and there are never dangling pointers or uninitialized variables.
-Dangling pointers are avoided through Rune's data modeling: every object is in
-a cascade-delete relationship with one or more parent objects, all the way to
-the "root" object.  Objects are either owned by a variable on the stack, or
-lives in the heap.  Those owned on the stack are destroyed when they go out of
-scope.
+
+The best part of Rune may be its data modeling.  There is no need for garbage
+collection.  Objects that live on the stack are destroyed when they go out of
+scope, unless they are added to the object tree.  The object tree is a tree
+that contains all objects on the heap.  Objects are destroyed when they are
+removed from their owning collection.  The tree is built from a rich set of
+object collections, such as lists, arrays, and hash maps.
+
+Collections in Rune are more powerful than collections in other languages.
+The compiler builds a graph of all relationships between objects, which enables
+it to safely remove objects from all collections when it is destroyed, making
+dangling pointers impossible.
 
 Rune will be strongly typed.  When you do not specify types of function
 parameters, they are infered from the caller.  Consider this min function:

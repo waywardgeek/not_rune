@@ -148,6 +148,7 @@ static xyToken executeDefaultMap(xyTokenArray tokens, uint32 statesToPop, xyToke
     return xyListTokenCreate(paCurrentParser, list, minLinenum);
 }
 
+/*
 // Apply map attributes to the token.
 static void applyMapAttributes(xyMap map, xyToken token) {
     if(xyMapScoped(map)) {
@@ -176,6 +177,7 @@ static void applyMapAttributes(xyMap map, xyToken token) {
         xyTokenSetType(token, XY_IDDOT);
     }
 }
+*/
 
 // Execute a map expression to combinethe tokens on the top of the stack.
 static xyToken executeMap(xyMap map, xyTokenArray tokens, uint32 statesToPop, xyToken token) {
@@ -205,7 +207,7 @@ static xyToken executeMap(xyMap map, xyTokenArray tokens, uint32 statesToPop, xy
     default:
         utExit("Unknown map type");
     }
-    applyMapAttributes(map, value);
+    // applyMapAttributes(map, value);
     return value;
 }
 

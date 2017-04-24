@@ -32,10 +32,10 @@ void xperror(
 %token <symVal> NONTERM KEYWORD
 %token <intVal> INTEGER
 
-%type <mapVal> map concatExpr concatExprs appendExpr attributeExpr tokenExpr listExpr
+%type <mapVal> map concatExpr concatExprs appendExpr tokenExpr listExpr
 
-%token KWINTEGER KWFLOAT KWBOOL KWSTRING KWIDENT KWNEWLINE KWDOUBLE_COLON KWARROW
-%token KWSCOPED KWDEF KWREF KWDOT KWNULL
+%token KWINTEGER KWFLOAT KWBOOL KWSTRING KWNEWLINE KWDOUBLE_COLON KWARROW KWNULL
+%token KWIDREF KWIDSCOPE KWIDFUNC KWIDTYPE KWIDVAR
 
 %%
 
@@ -109,35 +109,12 @@ concatExpr: appendExpr
 }
 ;
 
-appendExpr: attributeExpr
-| appendExpr '.' attributeExpr
+appendExpr: tokenExpr
+| appendExpr '.' tokenExpr
 {
     $$ = xyMapCreate(xpCurrentParser, XY_MAP_APPEND);
     xyMapAppendMap($$, $1);
     xyMapAppendMap($$, $3);
-}
-;
-
-attributeExpr: tokenExpr
-| attributeExpr ':' KWSCOPED
-{
-    xyMapSetScoped($1, true);
-    $$ = $1;
-}
-| attributeExpr ':' KWDEF
-{
-    xyMapSetDef($1, true);
-    $$ = $1;
-}
-| attributeExpr ':' KWREF
-{
-    xyMapSetRef($1, true);
-    $$ = $1;
-}
-| attributeExpr ':' KWDOT
-{
-    xyMapSetDot($1, true);
-    $$ = $1;
 }
 ;
 
@@ -187,9 +164,29 @@ token: KWINTEGER
 {
     xpTokenCreate(xpCurrentProduction, XY_STRING, utSymNull);
 }
-| KWIDENT
+| '.'
 {
-    xpTokenCreate(xpCurrentProduction, XY_IDENT, utSymNull);
+    xpTokenCreate(xpCurrentProduction, XY_DOT, utSymNull);
+}
+| KWIDREF
+{
+    xpTokenCreate(xpCurrentProduction, XY_IDREF, utSymNull);
+}
+| KWIDSCOPE
+{
+    xpTokenCreate(xpCurrentProduction, XY_IDSCOPE, utSymNull);
+}
+| KWIDFUNC
+{
+    xpTokenCreate(xpCurrentProduction, XY_IDFUNC, utSymNull);
+}
+| KWIDTYPE
+{
+    xpTokenCreate(xpCurrentProduction, XY_IDTYPE, utSymNull);
+}
+| KWIDVAR
+{
+    xpTokenCreate(xpCurrentProduction, XY_IDVAR, utSymNull);
 }
 | KWNEWLINE
 {

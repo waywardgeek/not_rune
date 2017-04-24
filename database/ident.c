@@ -18,9 +18,9 @@ static void printIdentTree(xyIdent ident, uint32 depth) {
     printf("%s\n", name);
     depth++;
     xyIdent child;
-    xyForeachIdentIdent(ident, child) {
+    xyForeachIdentInnerIdent(ident, child) {
         printIdentTree(child, depth);
-    } xyEndIdentIdent;
+    } xyEndIdentInnerIdent;
 }
 
 // Print out the identifier scope tree.
@@ -28,31 +28,24 @@ void xyPrintIdentTree(xyIdent ident) {
     printIdentTree(ident, 0);
 }
 
-xyIdent xyIdentCreate(xyIdent parentScope, utSym sym) {
+xyIdent xyIdentCreate(xyIdent outerIdent, xyIdent declIdent, xyToken token) {
     xyIdent ident = xyIdentAlloc();
-    xyIdentSetSym(ident, sym);
-    if(parentScope != xyIdentNull) {
-        xyIdentAppendIdent(parentScope, ident);
+    xyTokenInsertIdent(token, ident);
+    if(outerIdent != xyIdentNull) {
+        xyIdentAppendInnerIdent(outerIdent, ident);
     }
     return ident;
 }
 
 // Look for the identifier, first in the parent scope, and then it's parents.
-xyIdent xyLookupIdent(xyIdent parentScope, utSym sym) {
+xyIdent xyLookupIdent(xyIdent outerIdent, utSym sym) {
     xyIdent ident;
     do {
-        ident = xyIdentFindIdent(parentScope, sym);
+        ident = xyIdentFindInnerIdent(outerIdent, sym);
         if(ident != xyIdentNull) {
             return ident;
         }
-        parentScope = xyIdentGetIdent(parentScope);
-    } while(parentScope != xyIdentNull);
+        outerIdent = xyIdentGetOuterIdent(outerIdent);
+    } while(outerIdent != xyIdentNull);
     return xyIdentNull;
-}
-
-// Create a new identifier reference object.
-xyIdref xyIdrefCreate(xyIdent ident) {
-    xyIdref idref = xyIdrefAlloc();
-    xyIdentAppendIdref(ident, idref);
-    return idref;
 }

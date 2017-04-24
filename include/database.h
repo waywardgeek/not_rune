@@ -16,14 +16,13 @@ void xyPrintParser(xyParser parser);
 xyMtoken xyMtokenCreate(xyParser parser, xyTokenType type, utSym sym);
 
 // Token
-xyToken xyIdentTokenCreate(xyParser parser, utSym sym, uint32 linenum);
 xyToken xyIntTokenCreate(xyParser parser, int64 token, uint32 linenum);
 xyToken xyFloatTokenCreate(xyParser parser, double token, uint32 linenum);
 xyToken xyStringTokenCreate(xyParser parser, uint8 *token, uint32 linenum);
 xyToken xyListTokenCreate(xyParser parser, xyList list, uint32 linenum);
 xyToken xyBoolTokenCreate(xyParser parser, bool token, uint32 linenum);
 xyToken xyKeywordTokenCreate(xyParser parser, utSym sym, uint32 linenum);
-xyToken xyIdentTokenCreate(xyParser parser, utSym sym, uint32 linenum);
+xyToken xyIdentTokenCreate(xyParser parser, xyTokenType type, utSym sym, uint32 linenum);
 xyToken xyCharTokenCreate(xyParser parser, char *text, uint32 linenum);
 xyToken xyEOFTokenCreate(xyParser parser, uint32 linenum);
 xyToken xyNewlineTokenCreate(xyParser parser, uint32 linenum);
@@ -45,9 +44,11 @@ void xyPrintState(xyState state);
 
 // Ident
 xyIdent xyLookupIdent(xyIdent parentScope, utSym sym);
-xyIdent xyIdentCreate(xyIdent parentScope, utSym sym);
-xyIdref xyIdrefCreate(xyIdent ident);
+xyIdent xyIdentCreate(xyIdent outerIdent, xyIdent declIdent, xyToken token);
 void xyPrintIdentTree(xyIdent ident);
+static inline utSym xyIdentGetSym(xyIdent ident) {
+    return xyTokenGetSymVal(xyIdentGetToken(ident));
+}
 
 // Shortcuts
 char *xyMtokenGetName(xyMtoken mtoken);

@@ -1,3 +1,6 @@
+func test(uint t) {
+}
+
 func uint fact(uint n) {
     if n == 1 {
 	return 1
@@ -7,4 +10,5 @@ func uint fact(uint n) {
 
 func main() {
     var result = fact(6)
+    test(fact.n)
 }

@@ -84,21 +84,21 @@ static uint32 xpCommentDepth;
 <INITIAL>FLOAT                  { myToken(KWFLOAT); }
 <INITIAL>BOOL                   { myToken(KWBOOL); }
 <INITIAL>STRING                 { myToken(KWSTRING); }
-<INITIAL>IDENT                  { myToken(KWIDENT); }
+<INITIAL>IDREF                  { myToken(KWIDREF); }
+<INITIAL>IDSCOPE                { myToken(KWIDSCOPE); }
+<INITIAL>IDFUNC                 { myToken(KWIDFUNC); }
+<INITIAL>IDTYPE                 { myToken(KWIDTYPE); }
+<INITIAL>IDVAR                  { myToken(KWIDVAR); }
 <INITIAL>NEWLINE                { myToken(KWNEWLINE); }
 <INITIAL>"::"                   { myToken(KWDOUBLE_COLON); }
 <INITIAL>"->"                   { myToken(KWARROW); }
-<INITIAL>"scoped"               { myToken(KWSCOPED); }
-<INITIAL>"def"                  { myToken(KWDEF); }
-<INITIAL>"ref"                  { myToken(KWREF); }
-<INITIAL>"dot"                  { myToken(KWDOT); }
 <INITIAL>"null"                 { myToken(KWNULL); }
 
 <INITIAL>\"([^"]|\\.)*\"        { myDebug("KEYWORD %s\n", xptext);
                                   xplval.symVal = utSymCreate(unmunge(xptext));
                                   return KEYWORD; }
 <INITIAL>[0-9]+                 { xplval.intVal = atol(xptext);
-                                  myDebug("INTEGER %u\n", xplval.intVal);
+                                  myDebug("INTEGER %llu\n", xplval.intVal);
                                   return INTEGER; }
 <INITIAL>[a-zA-Z_][a-zA-Z0-9_]* { myDebug("NONTERM %s\n", xptext);
                                   xplval.symVal = utSymCreate(xptext);

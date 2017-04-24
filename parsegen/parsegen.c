@@ -72,9 +72,14 @@ void xpPrintParser(xyParser parser) {
 // Create a token object.  Find an Mtoken it matches, and create it if not found.
 xpToken xpTokenCreate(xpProduction production, xyTokenType type, utSym sym) {
     xyParser parser = xpRuleGetParser(xpProductionGetRule(production));
-    xyMtoken mtoken = xyParserFindMtoken(parser, type, sym);
+    xyTokenType mtokenType = type;
+    if (type == XY_IDENT || type == XY_IDREF || type == XY_IDFUNC || type ==
+            XY_IDTYPE || type == XY_IDVAR) {
+        mtokenType = XY_IDENT;
+    }
+    xyMtoken mtoken = xyParserFindMtoken(parser, mtokenType, sym);
     if(mtoken == xyMtokenNull) {
-        mtoken = xyMtokenCreate(parser, type, sym);
+        mtoken = xyMtokenCreate(parser, mtokenType, sym);
     }
     xpToken token = xpTokenAlloc();
     xpMtokenAppendToken(mtoken, token);

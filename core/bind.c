@@ -7,7 +7,7 @@ static xyToken findScopedIdentToken(xyList list) {
     xyToken token;
     xyToken scopedToken = xyTokenNull;
     xyForeachListToken(list, token) {
-        if(xyTokenGetType(token) == XY_IDSCOPED) {
+        if(xyTokenGetType(token) == XY_IDSCOPE) {
             if(scopedToken != xyTokenNull) {
                 xyError(token, "List contains two scoped identifiers");
             }
@@ -17,8 +17,47 @@ static xyToken findScopedIdentToken(xyList list) {
     return scopedToken;
 }
 
+// Determine if the list is a dotted path.  All tokens in the list must be
+// XY_IDDOT tokens.  If they mix types, it is an error.
+static bool listIsDottedPath(xyList list) {
+    if(xyListGetUsedToken(list) == 0) {
+        return false;
+    }
+    xyToken token = xyListGetiToken(list, 0);
+    if(xyTokenGetType(token) == XY_DOT) {
+        return true;
+    }
+    return false;
+}
+
+// Bind a dotted path.
+static void bindDottedPath(xyList list, xyIdent parentScope) {
+    xyToken token;
+    xyForeachListToken(list, token) {
+        /*
+        if(xyTokenGetType(token) != XY_DOT) {
+            xyError(token, "Non-dotted token in dotted path - check syntax rules");
+        }
+        utAssert(xyTokenGetIdent(token) == xyIdentNull);
+        utSym sym = xyTokenGetSymVal(token);
+        xyIdent ident = xyLookupIdent(parentScope, sym);
+        if(ident == xyIdentNull) {
+            xyError(token, "Identifier %s is not defined", utSymGetName(sym));
+        }
+        xyIdent ident = xyIdentCreate(ident);
+        xyTokenSetIdref(token, idref);
+        parentScope = ident;
+        */
+    } xyEndListToken;
+}
+
 // Bind identifiers recursively under this ident's scope.
 static void bindListIdentifiers(xyList list, xyIdent parentScope) {
+    /*
+    if(listIsDottedPath(list)) {
+        bindDottedPath(list, parentScope);
+        return;
+    }
     xyToken token = findScopedIdentToken(list);
     if(token != xyTokenNull) {
         if(xyListScoped(list)) {
@@ -37,10 +76,12 @@ static void bindListIdentifiers(xyList list, xyIdent parentScope) {
     xyForeachListToken(list, token) {
         coBindIdentifiers(token, parentScope);
     } xyEndListToken;
+    */
 }
 
 // Bind identifiers recursively under this ident's scope.
 void coBindIdentifiers(xyToken token, xyIdent parentScope) {
+    /*
     xyTokenType type = xyTokenGetType(token);
     if(type == XY_IDENT) {
         xyError(token, "Identifier has not been marked as def, ref, or scoped");
@@ -57,11 +98,10 @@ void coBindIdentifiers(xyToken token, xyIdent parentScope) {
         }
         xyIdref idref = xyIdrefCreate(ident);
         xyTokenSetIdref(token, idref);
-    } else if(type == XY_IDDOT) {
-        // TODO: Deal with dotted paths when we do type propagation
-        // I don't recall why I had that TODO.  Isn't this just the same as the XY_IDREF case?
-    } else if(type == XY_IDSCOPED) {
     } else if(type == XY_LIST) {
         bindListIdentifiers(xyTokenGetListVal(token), parentScope);
+    } else if (type == XY_IDDOT) {
+        xyError(token, "Dotted identifier in non-path - check syntax rules");
     }
+    */
 }

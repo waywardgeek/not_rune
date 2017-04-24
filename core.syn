@@ -10,15 +10,8 @@ paths: -> ()
 | paths path -> $1.$2
 ;
 
-path: IDENT -> $1:ref
-| dottedPath
-;
-
-dottedPath: "(" idents ")" -> $2
-;
-
-idents: IDENT -> ($1:ref)
-| idents IDENT -> $1.$2:dot
+path: IDREF -> $1
+| "(" "." path IDREF ")" -> ("." $3 $4)
 ;
 
 topStatements: statement NEWLINE -> ($1)
@@ -94,20 +87,20 @@ declaration: varDecl
 | classDecl
 ;
 
-varDecl: "(" "var" IDENT optExpr ")" -> ("var" $3:def $4)
+varDecl: "(" "var" IDVAR optExpr ")" -> ("var" $3 $4)
 ;
 
-functionDecl: "(" "func" type IDENT "(" functionParamDecls ")" statementList ")"
-    -> ("func" $3 $4:scoped $6 $8)
-| "(" "func" IDENT "(" functionParamDecls ")" statementList ")"
-    -> ("func" null $3:scoped $5 $7)
+functionDecl: "(" "func" type IDFUNC "(" functionParamDecls ")" statementList ")"
+    -> ("func" $3 $4 $6 $8)
+| "(" "func" IDFUNC "(" functionParamDecls ")" statementList ")"
+    -> ("func" $3 $5 $7)
 ;
 
 functionParamDecls: -> ()
-| functionParamDecls type IDENT -> $1.$2.$3:def
+| functionParamDecls type IDVAR -> $1.$2.$3
 ;
 
-classDecl: "(" "class" IDENT classDeclarations ")" -> ("class" $3:scoped).$4
+classDecl: "(" "class" IDTYPE classDeclarations ")" -> ("class" $3).$4
 ;
 
 classDeclarations: -> ()
@@ -138,9 +131,9 @@ expr: boolOpExpr
 | FLOAT
 ;
 
-accessExpr: IDENT -> $1:ref
+accessExpr: IDREF -> $1
 | "(" "index" accessExpr arithExpr ")" -> ("index" $3 $4)
-| "(" "dot" accessExpr IDENT ")" -> ("dot" $3 $4:dot)
+| "(" "." accessExpr IDREF ")" -> ("." $3 $4)
 ;
 
 boolExprs: -> ()

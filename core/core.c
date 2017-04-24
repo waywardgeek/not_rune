@@ -52,7 +52,9 @@ static void buildKeywords(void) {
 
 // Just create a global identifier for the string.
 static inline void addGlobal(xyIdent globalScope, char *text) {
+    /*
     xyIdentCreate(globalScope, utSymCreate(text));
+    */
 }
 
 // Build global identifiers.
@@ -105,6 +107,7 @@ bool coWriteSourceFile(xyToken prog, char *outCFileName) {
 // false, class properties are stored in contiguous structures, and references
 // are pointers.
 bool coCompileList(xyToken prog, char *outHFileName, char *outCFileName, bool usePointerReferences) {
+    /*
     coDatabaseStart();
     buildKeywords();
     xyIdent globalScope = xyIdentCreate(xyIdentNull, utSymNull);
@@ -115,5 +118,6 @@ bool coCompileList(xyToken prog, char *outHFileName, char *outCFileName, bool us
     coWriteSourceFile(prog, outCFileName);
     coDatabaseStop();
     xyPrintIdentTree(globalScope);
+    */
     return true;
 }

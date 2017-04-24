@@ -22,10 +22,13 @@ char *xyTokenTypeGetName(xyTokenType type) {
     case XY_STRING: return "STRING";
     case XY_LIST: return "LIST";
     case XY_CHAR: return "CHAR";
+    case XY_DOT: return "DOT";
     case XY_IDENT: return "IDENT";
-    case XY_IDDEF: return "IDDEF";
     case XY_IDREF: return "IDREF";
-    case XY_IDSCOPED: return "IDSCOPED";
+    case XY_IDSCOPE: return "IDSCOPE";
+    case XY_IDFUNC: return "IDFUNC";
+    case XY_IDTYPE: return "IDTYPE";
+    case XY_IDVAR: return "IDVAR";
     case XY_NEWLINE: return "NEWLINE";
     case XY_EOF: return "EOF";
     case XY_NULL: return "null";
@@ -48,10 +51,13 @@ char *xyTokenGetText(xyToken token) {
         return utSprintf("%s", xyStringGetText(xyTokenGetStringVal(token)));
     case XY_LIST:
         return xyListGetText(xyTokenGetListVal(token));
+    case XY_DOT: return ".";
     case XY_IDENT:
     case XY_IDREF:
-    case XY_IDDEF:
-    case XY_IDSCOPED:
+    case XY_IDSCOPE:
+    case XY_IDFUNC:
+    case XY_IDTYPE:
+    case XY_IDVAR:
         return utSprintf("%s", utSymGetName(xyTokenGetSymVal(token)));
     case XY_NONTERM:
     case XY_KEYWORD:
@@ -91,8 +97,8 @@ static inline xyToken tokenCreate(xyParser parser, xyTokenType type, utSym sym, 
 }
 
 // Create a new sym token.
-xyToken xyIdentTokenCreate(xyParser parser, utSym sym, uint32 linenum) {
-    xyToken token = tokenCreate(parser, XY_IDENT, utSymNull, linenum);
+xyToken xyIdentTokenCreate(xyParser parser, xyTokenType type, utSym sym, uint32 linenum) {
+    xyToken token = tokenCreate(parser, type, utSymNull, linenum);
     xyTokenSetSymVal(token, sym);
     return token;
 }
