@@ -18,9 +18,9 @@ static void printIdentTree(xyIdent ident, uint32 depth) {
     printf("%s\n", name);
     depth++;
     xyIdent child;
-    xyForeachIdentInnerIdent(ident, child) {
+    xyForeachIdentIdent(ident, child) {
         printIdentTree(child, depth);
-    } xyEndIdentInnerIdent;
+    } xyEndIdentIdent;
 }
 
 // Print out the identifier scope tree.
@@ -28,11 +28,23 @@ void xyPrintIdentTree(xyIdent ident) {
     printIdentTree(ident, 0);
 }
 
-xyIdent xyIdentCreate(xyIdent outerIdent, xyIdent declIdent, xyToken token) {
+// Create an identifier from a token that declares it.
+xyIdent xyIdentCreate(xyIdent outerIdent, xyToken token) {
     xyIdent ident = xyIdentAlloc();
-    xyTokenInsertIdent(token, ident);
+    xyTokenSetIdent(token, ident);
+    xyIdentSetSym(ident, xyTokenGetSymVal(token));
     if(outerIdent != xyIdentNull) {
-        xyIdentAppendInnerIdent(outerIdent, ident);
+        xyIdentAppendIdent(outerIdent, ident);
+    }
+    return ident;
+}
+
+// Create a symbol not declared by a token.
+xyIdent xySymIdentCreate(xyIdent outerIdent, utSym sym) {
+    xyIdent ident = xyIdentAlloc();
+    xyIdentSetSym(ident, sym);
+    if(outerIdent != xyIdentNull) {
+        xyIdentAppendIdent(outerIdent, ident);
     }
     return ident;
 }
@@ -41,11 +53,11 @@ xyIdent xyIdentCreate(xyIdent outerIdent, xyIdent declIdent, xyToken token) {
 xyIdent xyLookupIdent(xyIdent outerIdent, utSym sym) {
     xyIdent ident;
     do {
-        ident = xyIdentFindInnerIdent(outerIdent, sym);
+        ident = xyIdentFindIdent(outerIdent, sym);
         if(ident != xyIdentNull) {
             return ident;
         }
-        outerIdent = xyIdentGetOuterIdent(outerIdent);
+        outerIdent = xyIdentGetIdent(outerIdent);
     } while(outerIdent != xyIdentNull);
     return xyIdentNull;
 }

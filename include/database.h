@@ -44,11 +44,9 @@ void xyPrintState(xyState state);
 
 // Ident
 xyIdent xyLookupIdent(xyIdent parentScope, utSym sym);
-xyIdent xyIdentCreate(xyIdent outerIdent, xyIdent declIdent, xyToken token);
+xyIdent xyIdentCreate(xyIdent outerIdent, xyToken token);
+xyIdent xySymIdentCreate(xyIdent outerIdent, utSym sym);
 void xyPrintIdentTree(xyIdent ident);
-static inline utSym xyIdentGetSym(xyIdent ident) {
-    return xyTokenGetSymVal(xyIdentGetToken(ident));
-}
 
 // Shortcuts
 char *xyMtokenGetName(xyMtoken mtoken);
@@ -56,3 +54,19 @@ char *xyTokenTypeGetName(xyTokenType type);
 
 // Globals
 extern xyRoot xyTheRoot;
+
+extern xyIdent xyBoolType;
+extern xyIdent xyIntType;
+extern xyIdent xyInt8Type;
+extern xyIdent xyInt16Type;
+extern xyIdent xyInt32Type;
+extern xyIdent xyInt64Type;
+extern xyIdent xyUintType;
+extern xyIdent xyUint8Type;
+extern xyIdent xyUint16Type;
+extern xyIdent xyUint32Type;
+extern xyIdent xyUint64Type;
+extern xyIdent xyFloatType;
+extern xyIdent xyStringType;
+extern xyIdent xyCharType;
+

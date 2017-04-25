@@ -2,6 +2,21 @@
 
 FILE *coFile;
 
+xyIdent xyBoolType;
+xyIdent xyIntType;
+xyIdent xyInt8Type;
+xyIdent xyInt16Type;
+xyIdent xyInt32Type;
+xyIdent xyInt64Type;
+xyIdent xyUintType;
+xyIdent xyUint8Type;
+xyIdent xyUint16Type;
+xyIdent xyUint32Type;
+xyIdent xyUint64Type;
+xyIdent xyFloatType;
+xyIdent xyStringType;
+xyIdent xyCharType;
+
 // Create a new keyword.
 coKeyword coKeywordCreate(coKeywordType type, char *name) {
     coKeyword keyword = coKeywordAlloc();
@@ -47,35 +62,33 @@ static void buildKeywords(void) {
     coKeywordCreate(CO_KWRSHIFT, ">>");
     coKeywordCreate(CO_KWCOMP, "~");
     coKeywordCreate(CO_KWNEW, "new");
-    coKeywordCreate(CO_KWDOT, "dot");
+    coKeywordCreate(CO_KWDOT, ".");
 }
 
 // Just create a global identifier for the string.
-static inline void addGlobal(xyIdent globalScope, char *text) {
-    /*
-    xyIdentCreate(globalScope, utSymCreate(text));
-    */
+static inline xyIdent addGlobal(xyIdent globalScope, char *text) {
+    return xySymIdentCreate(globalScope, utSymCreate(text));
 }
 
 // Build global identifiers.
 static void buildGlobalIdents(xyIdent globalScope) {
-    addGlobal(globalScope, "bool");
+    xyBoolType = addGlobal(globalScope, "bool");
     addGlobal(globalScope, "true");
     addGlobal(globalScope, "false");
     // TODO: add at least uint128, or preferably arbitrary width
-    addGlobal(globalScope, "int");
-    addGlobal(globalScope, "int8");
-    addGlobal(globalScope, "int16");
-    addGlobal(globalScope, "int32");
-    addGlobal(globalScope, "int64");
-    addGlobal(globalScope, "uint");
-    addGlobal(globalScope, "uint8");
-    addGlobal(globalScope, "uint16");
-    addGlobal(globalScope, "uint32");
-    addGlobal(globalScope, "uint64");
-    addGlobal(globalScope, "float");
-    addGlobal(globalScope, "string");
-    addGlobal(globalScope, "char");
+    xyIntType = addGlobal(globalScope, "int");
+    xyInt8Type = addGlobal(globalScope, "int8");
+    xyInt16Type = addGlobal(globalScope, "int16");
+    xyInt32Type = addGlobal(globalScope, "int32");
+    xyInt64Type = addGlobal(globalScope, "int64");
+    xyUintType = addGlobal(globalScope, "uint");
+    xyUint8Type = addGlobal(globalScope, "uint8");
+    xyUint16Type = addGlobal(globalScope, "uint16");
+    xyUint32Type = addGlobal(globalScope, "uint32");
+    xyUint64Type = addGlobal(globalScope, "uint64");
+    xyFloatType = addGlobal(globalScope, "float");
+    xyStringType = addGlobal(globalScope, "string");
+    xyCharType = addGlobal(globalScope, "char");
     addGlobal(globalScope, "null");
 }
 
@@ -107,10 +120,9 @@ bool coWriteSourceFile(xyToken prog, char *outCFileName) {
 // false, class properties are stored in contiguous structures, and references
 // are pointers.
 bool coCompileList(xyToken prog, char *outHFileName, char *outCFileName, bool usePointerReferences) {
-    /*
     coDatabaseStart();
     buildKeywords();
-    xyIdent globalScope = xyIdentCreate(xyIdentNull, utSymNull);
+    xyIdent globalScope = xyIdentCreate(xyIdentNull, xyTokenNull);
     xyRootSetGlobalIdent(xyTheRoot, globalScope);
     buildGlobalIdents(globalScope);
     coBindIdentifiers(prog, globalScope);
@@ -118,6 +130,5 @@ bool coCompileList(xyToken prog, char *outHFileName, char *outCFileName, bool us
     coWriteSourceFile(prog, outCFileName);
     coDatabaseStop();
     xyPrintIdentTree(globalScope);
-    */
     return true;
 }

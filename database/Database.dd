@@ -37,6 +37,7 @@ enum MapType XY_MAP_
 class Root
 
 class Ident
+    TokenType type
 
 class String
     array uint8 text
@@ -81,9 +82,9 @@ class Map
         sym Sym: KEYWORD
 
 relationship Root Ident:Global cascade
-relationship Ident:Outer Ident:Inner hashed cascade
+relationship Ident Ident hashed cascade
 relationship Ident:Decl Ident:Inst doubly_linked cascade
-relationship Token Ident cascade
+relationship Ident Token
 relationship Root Parser hashed mandatory
 relationship List Token array cascade
 relationship Parser Mtoken hashed Type Sym mandatory
