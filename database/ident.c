@@ -31,8 +31,13 @@ void xyPrintIdentTree(xyIdent ident) {
 // Create an identifier from a token that declares it.
 xyIdent xyIdentCreate(xyIdent outerIdent, xyToken token) {
     xyIdent ident = xyIdentAlloc();
-    xyTokenSetIdent(token, ident);
-    xyIdentSetSym(ident, xyTokenGetSymVal(token));
+    if (token != xyTokenNull) {
+        xyTokenSetIdent(token, ident);
+        xyIdentSetSym(ident, xyTokenGetSymVal(token));
+        xyIdentSetType(ident, xyTokenGetType(token));
+    } else {
+        xyIdentSetType(ident, XY_IDSCOPE);
+    }
     if(outerIdent != xyIdentNull) {
         xyIdentAppendIdent(outerIdent, ident);
     }
@@ -40,9 +45,10 @@ xyIdent xyIdentCreate(xyIdent outerIdent, xyToken token) {
 }
 
 // Create a symbol not declared by a token.
-xyIdent xySymIdentCreate(xyIdent outerIdent, utSym sym) {
+xyIdent xySymIdentCreate(xyTokenType type, xyIdent outerIdent, utSym sym) {
     xyIdent ident = xyIdentAlloc();
     xyIdentSetSym(ident, sym);
+    xyIdentSetType(ident, type);
     if(outerIdent != xyIdentNull) {
         xyIdentAppendIdent(outerIdent, ident);
     }

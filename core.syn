@@ -107,7 +107,7 @@ classDeclarations: -> ()
 | classDeclarations declaration -> $1.$2
 ;
 
-functionCall: "(" accessExpr exprs ")" -> ($2)+$3
+functionCall: "(" "call" accessExpr exprs ")" -> ($3)+$4
 ;
 
 exprs: -> ()
@@ -115,11 +115,8 @@ exprs: -> ()
 ;
 
 type: path
-| "(" "array" type optSize ")" -> ("array" $3 $4)
-;
-
-optSize:
-| INTEGER
+| "(" "array" path constArithExpr ")" -> ("array" $3 $4)
+| "(" "array" path ")" -> ("array" $3)
 ;
 
 expr: boolOpExpr

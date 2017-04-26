@@ -178,3 +178,16 @@ xyToken xyCharTokenCreate(xyParser parser, char *text, uint32 linenum) {
     xyTokenSetCharVal(token, charVal);
     return token;
 }
+
+// Find any scoped identifier in the list.  It is illegal to have more than
+// one.
+static xyToken findScopedIdentToken(xyList list) {
+    xyToken token;
+    xyForeachListToken(list, token) {
+        xyTokenType type = xyTokenGetType(token);
+        if(type == XY_IDSCOPE || type == XY_IDFUNC || type == XY_IDTYPE) {
+            return token;
+        }
+    } xyEndListToken;
+    return xyTokenNull;
+}

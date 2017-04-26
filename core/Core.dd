@@ -2,24 +2,31 @@ module Core co
 
 import Database
 
-enum IdentType CO_
-    CLASS
-    VAR
-    FUNC
+class Root: xy
 
-enum StatementType CO_
+enum BuiltinCategory CO_
+    OPERATOR
+    STATEMENT
+    TYPE
+    CONSTANT
+
+enum BuiltinType CO_
+    // Statements
+    IMPORT
     ASSIGN
     SWITCH
+    DEFAULT
     CALL
     RETURN
-    DELETE
     IF
     WHILE
-    VARDECL
-    FUNCDECL
-    CLASSDECL
-
-enum ExprType CO_
+    DO
+    VAR
+    FUNC
+    CLASS
+    NEW
+    DELETE
+    // Operaors
     OR
     AND
     NOT
@@ -41,77 +48,33 @@ enum ExprType CO_
     BITOR
     BITXOR
     COMP
-
-enum KeywordType CO_KW
-    IMPORT
-    ASSIGN
-    IF
-    WHILE
-    DO
-    RETURN
-    DELETE
-    SWITCH
-    DEFAULT
-    VAR
-    FUNC
-    CLASS
-    ARRAY
     INDEX
-    OR
-    AND
-    NOT
-    EQ
-    NE
-    GT
-    LT
-    GE
-    LE
-    MINUS
-    PLUS
-    MUL
-    BITAND
-    BITOR
-    BITXOR
-    DIV
-    MOD
-    LSHIFT
-    RSHIFT
-    COMP
-    NEW
     DOT
+    // Types
+    ARRAY
+    BOOL
+    INT
+    INT8
+    INT16
+    INT32
+    INT64
+    UINT
+    UINT8
+    UINT16
+    UINT32
+    UINT64
+    FLOAT
+    STRING
+    CHAR
+    // Constants
+    NULL
+    TRUE
+    FALSE
 
-class Root: xy
+// Built-in functions.
+class Builtin
+    BuiltinType type
+    BuiltinCategory category
 
-class List: xy
+relationship Root Builtin hashed mandatory
 
-class Ident
-    IdentType type
-    union type
-        Class theClass cascade: CLASS
-        Var var cascade: VAR
-        Func func cascade: FUNC
-
-class Class
-    Ident ident
-
-class Var
-    Ident ident
-
-class Func
-    Ident ident
-    List list
-
-class Statement
-
-class Expr
-
-class Keyword
-    KeywordType type
-
-relationship Root Ident:Global cascade
-relationship Ident Ident hashed cascade
-relationship Func Statement:Top cascade
-relationship Statement Statement doubly_linked cascade
-relationship Statement Expr cascade child_only
-relationship Expr Expr doubly_linked cascade
-relationship Root Keyword hashed mandatory

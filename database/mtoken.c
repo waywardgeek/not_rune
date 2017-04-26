@@ -13,7 +13,7 @@ char *xyMtokenGetName(xyMtoken mtoken) {
     case XY_CHAR: return "CHAR";
     case XY_NEWLINE: return "NEWLINE";
     case XY_EOF: return "EOF";
-    case XY_DOT: return "DOT";
+    case XY_DOT: return ".";
     case XY_IDENT: return "IDENT";
     default:
         utExit("Unknown mtoken type");

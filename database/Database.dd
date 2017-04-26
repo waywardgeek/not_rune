@@ -1,9 +1,47 @@
 module Database xy
 
+// A parsed token list has a specific format.  The IDFUNC, IDTYPE, and IDSCOPE
+// variables indicate that their containing list is a new scope, identified by
+// the ID in the identifier scope hierarchy.  IDVAR tokens are variable
+// declarations, possibly in a list with a type declaration.  The first element
+// of a statement or expression list is a keyword that identifies it.
+//
+// The token tree is a hierarchy of lists starting with keywords.  A Bind
+// method is associated with each keyword that is allowed to start a list.
+// Bind makes each token point to the Ident that specifies its type, and also
+// does type and symantic checking.  Bind methods call Bind recursively on
+// sub-lists.  The structure within the list can be anything.
+//
+// The entire tree must be converted eventually to the core syntax.  A module
+// that adds syntax may add new keywords with new tree structure.  They can
+// also can enhance existing keywords.  When a compiler module is registered,
+// it should save the existing Bind methods and overwrite them when
+// initialized, and restore them when the module is done, at which point the
+// extended tree syntax supported by the module will no longer exist in the
+// tree.
+//
+// IDTYPE tokens can have utSymNull as the symbol when the type is anonymous,
+// but such types must be converted to named types by the module that added
+// them.
+//
+// The core syntax is very close to C.  It is meant to be usable, but trivial
+// to translate to C.  Note that memory layout is hidden by the core syntax.
+
+typedef xyBindfunc = "NULL"
+
 enum TokenType XY_
     NONTERM
     KEYWORD
     INT
+    INT8
+    INT16
+    INT32
+    INT64
+    UINT
+    UINT8
+    UINT16
+    UINT32
+    UINT64
     BOOL
     FLOAT
     STRING
@@ -44,6 +82,7 @@ class String
 
 class Token array
     TokenType type
+    Token typeToken  // Points to the token that defines this token's type.
     uint32 linenum
     union type
         int64 intVal: INT  // TODO: Convert this to bigints
@@ -64,6 +103,7 @@ class Parser
 class Mtoken
     TokenType type  // All XY_ID variants are represented with XY_IDENT
     sym Sym
+    xyBindfunc bindfunc  // Function called to bind lists starting with this keyword.
 
 class State array
     bool ignoreNewlines
@@ -81,9 +121,9 @@ class Map
         uint32 position: TOKEN
         sym Sym: KEYWORD
 
+
 relationship Root Ident:Global cascade
 relationship Ident Ident hashed cascade
-relationship Ident:Decl Ident:Inst doubly_linked cascade
 relationship Ident Token
 relationship Root Parser hashed mandatory
 relationship List Token array cascade

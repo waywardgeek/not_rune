@@ -1,5 +1,17 @@
 #include "xydatabase.h"
 
+// Initialization.
+void xyStart(void);
+void xyStop(void);
+
+// Type binding.
+void xyRegisterBuiltins(xyParser parser);
+xyBindfunc xyRegisterBindfunc(xyParser parser, utSym sym, xyBindfunc bindfunc);
+void xyUnregisterBindfunc(xyParser parser, utSym sym, xyBindfunc oldBindfunc);
+xyToken xyBindToken(xyIdent currentScope, xyToken token);
+void xyBindList(xyIdent currentScope, xyList list);
+void xyBindType(xyIdent currentScope, xyToken typeToken);
+
 // String
 xyString xyStringCreate(uint8 *text);
 
@@ -45,7 +57,7 @@ void xyPrintState(xyState state);
 // Ident
 xyIdent xyLookupIdent(xyIdent parentScope, utSym sym);
 xyIdent xyIdentCreate(xyIdent outerIdent, xyToken token);
-xyIdent xySymIdentCreate(xyIdent outerIdent, utSym sym);
+xyIdent xySymIdentCreate(xyTokenType type, xyIdent outerIdent, utSym sym);
 void xyPrintIdentTree(xyIdent ident);
 
 // Shortcuts
@@ -54,19 +66,7 @@ char *xyTokenTypeGetName(xyTokenType type);
 
 // Globals
 extern xyRoot xyTheRoot;
-
-extern xyIdent xyBoolType;
-extern xyIdent xyIntType;
-extern xyIdent xyInt8Type;
-extern xyIdent xyInt16Type;
-extern xyIdent xyInt32Type;
-extern xyIdent xyInt64Type;
-extern xyIdent xyUintType;
-extern xyIdent xyUint8Type;
-extern xyIdent xyUint16Type;
-extern xyIdent xyUint32Type;
-extern xyIdent xyUint64Type;
-extern xyIdent xyFloatType;
-extern xyIdent xyStringType;
-extern xyIdent xyCharType;
-
+extern xyToken xyArrayType, xyBoolType, xyIntType, xyInt8Type, xyInt16Type;
+extern xyToken xyInt32Type, xyInt64Type, xyUintType, xyUint8Type, xyUint16Type;
+extern xyToken xyUint32Type, xyUint64Type, xyFloatType, xyStringType, xyCharType;
+extern xyToken xyTrueToken, xyFalseToken, xyNullToken;

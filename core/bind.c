@@ -5,78 +5,27 @@
 // namespaces.
 static xyToken findScopedIdentToken(xyList list) {
     xyToken token;
-    xyToken scopedToken = xyTokenNull;
     xyForeachListToken(list, token) {
-        if(xyTokenGetType(token) == XY_IDSCOPE) {
-            if(scopedToken != xyTokenNull) {
-                xyError(token, "List contains two scoped identifiers");
-            }
-            scopedToken = token;
+        xyTokenType type = xyTokenGetType(token);
+        if(type == XY_IDSCOPE || type == XY_IDFUNC || type == XY_IDTYPE) {
+            return token;
         }
     } xyEndListToken;
-    return scopedToken;
-}
-
-// Determine if the list is a dotted path.  All tokens in the list must be
-// XY_IDDOT tokens.  If they mix types, it is an error.
-static bool listIsDottedPath(xyList list) {
-    if(xyListGetUsedToken(list) == 0) {
-        return false;
-    }
-    xyToken token = xyListGetiToken(list, 0);
-    if(xyTokenGetType(token) == XY_DOT) {
-        return true;
-    }
-    return false;
-}
-
-// Bind a dotted path.
-static void bindDottedPath(xyList list, xyIdent parentScope) {
-    xyToken token;
-    xyForeachListToken(list, token) {
-        /*
-        if(xyTokenGetType(token) != XY_DOT) {
-            xyError(token, "Non-dotted token in dotted path - check syntax rules");
-        }
-        utAssert(xyTokenGetIdent(token) == xyIdentNull);
-        utSym sym = xyTokenGetSymVal(token);
-        xyIdent ident = xyLookupIdent(parentScope, sym);
-        if(ident == xyIdentNull) {
-            xyError(token, "Identifier %s is not defined", utSymGetName(sym));
-        }
-        xyIdent ident = xyIdentCreate(ident);
-        xyTokenSetIdref(token, idref);
-        parentScope = ident;
-        */
-    } xyEndListToken;
+    return xyTokenNull;
 }
 
 // Bind identifiers recursively under this ident's scope.
 static void bindListIdentifiers(xyList list, xyIdent parentScope) {
-    /*
-    if(listIsDottedPath(list)) {
-        bindDottedPath(list, parentScope);
-        return;
-    }
     xyToken token = findScopedIdentToken(list);
     if(token != xyTokenNull) {
-        if(xyListScoped(list)) {
-            xyError(token, "Anonymous scoped list has a scoped identifier");
-        }
+        utAssert(xyListGetIdent(list) == xyIdentNull);
         utAssert(xyTokenGetIdent(token) == xyIdentNull);
-        parentScope = xyIdentCreate(parentScope, xyTokenGetSymVal(token));
-        xyTokenSetIdent(token, parentScope);
-        xyListSetIdent(list, parentScope);
-        xyListSetScoped(list, true);
-    } else if(xyListScoped(list)) {
-        // Create an anonymous scope.
-        parentScope = xyIdentCreate(parentScope, utSymNull);
+        parentScope = xyIdentCreate(parentScope, token);
         xyListSetIdent(list, parentScope);
     }
     xyForeachListToken(list, token) {
         coBindIdentifiers(token, parentScope);
     } xyEndListToken;
-    */
 }
 
 // Find the type of an expression.  In the core syntax, all expressions are
@@ -85,29 +34,39 @@ static void bindListIdentifiers(xyList list, xyIdent parentScope) {
 // a literal, the type is the type of the literal, which is represeted by the
 // literal token itself.
 static xyIdent findType(xyToken token, xyIdent parentScope) {
-    /*
     xyList list;
     xyToken refToken;
     switch (xyTokenGetType(token)) {
-    case XY_KEYWORD: return xyIdentNull;
+    case XY_ARRAY: return xyArrayType;
+    case XY_BOOL: return xyBoolType;
     case XY_INT: return xyIntType;
-    case BOOL: return xyBoolType;
-    case FLOAT: return xyFloatType;
-    case STRING: return xyStringType;
-    case CHAR: return xyCharType;
-    case LIST:
+    case XY_INT8: return xyInt8Type;
+    case XY_INT16: return xyInt16Type;
+    case XY_INT32: return xyInt32Type;
+    case XY_INT64: return xyInt64Type;
+    case XY_UINT: return xyUintType;
+    case XY_UINT8: return xyUint8Type;
+    case XY_UINT16: return xyUint16Type;
+    case XY_UINT32: return xyUint32Type;
+    case XY_UINT64: return xyUint64Type;
+    case XY_FLOAT: return xyFloatType;
+    case XY_STRING: return xyStringType;
+    case XY_CHAR: return xyCharType;
+    case XY_LIST:
         // Must be a function call.
         list = xyTokenGetListVal(token);
-        if (xyListGetNumToken(list) < 1) {
+        if (xyListGetNumToken(list) == 0) {
             xyError(token, "Empty function call");
         }
-        ...
         refToken = xyListGetiToken(list, 0);
-        funcSig = findFuncWithSig(convertToSig(
+        if (xyTokenGetType(refToken) != XY_IDREF) {
+            xyError(token, "Expected function call");
+        }
+
+        break;
     default:
         // Nothing needed.
     }
-    */
     return xyIdentNull;
 }
 
@@ -124,7 +83,7 @@ static void bindDotExpression(xyToken token, xyIdent parentScope) {
     if (xyTokenGetType(idrefToken) != XY_IDREF) {
         xyError(token, "Must have IDREF token in dot expression");
     }
-    xyIdent typeIdent = findType(token, parentScope);
+    xyIdent typeIdent = findType(exprToken, parentScope);
     if (typeIdent == xyIdentNull) {
         xyError(token, "Dot expression on null type");
     }
@@ -134,17 +93,19 @@ static void bindDotExpression(xyToken token, xyIdent parentScope) {
 // Bind identifiers recursively under this ident's scope.
 void coBindIdentifiers(xyToken token, xyIdent parentScope) {
     xyTokenType type = xyTokenGetType(token);
+    xyList list = xyTokenGetList(token);
+    xyIdent ident;
     switch (type) {
-    case XY_IDSCOPE: case XY_IDFUNC: case XY_IDTYPE: case XY_IDVAR:
-        utAssert(xyTokenGetIdent(token) == xyIdentNull);
-        xyIdent ident = xyIdentCreate(parentScope, token);
+    case XY_IDSCOPE: case XY_IDFUNC: case XY_IDTYPE:
+        // Must already have been bound.
+        utAssert(xyListGetIdent(list) == xyTokenGetIdent(token));
         break;
     case XY_IDREF:
         utAssert(xyTokenGetIdent(token) == xyIdentNull);
         utSym sym = xyTokenGetSymVal(token);
         ident = xyLookupIdent(parentScope, sym);
         if(ident == xyIdentNull) {
-            xyError(token, "Identifier %s is not defined", utSymGetName(sym));
+            xyError(token, "Identifier %s is not found", utSymGetName(sym));
         }
         xyTokenSetIdent(token, ident);
         break;

@@ -148,37 +148,6 @@ static xyToken executeDefaultMap(xyTokenArray tokens, uint32 statesToPop, xyToke
     return xyListTokenCreate(paCurrentParser, list, minLinenum);
 }
 
-/*
-// Apply map attributes to the token.
-static void applyMapAttributes(xyMap map, xyToken token) {
-    if(xyMapScoped(map)) {
-        xyTokenType type = xyTokenGetType(token);
-        if(type == XY_LIST) {
-            xyListSetScoped(xyTokenGetListVal(token), true);
-        } else if(type == XY_IDENT) {
-            xyTokenSetType(token, XY_IDSCOPED);
-        } else {
-            xyError(token, "'scoped' can only be applied to lists and IDENTs");
-        }
-    } else if(xyMapDef(map)) {
-        if(xyTokenGetType(token) != XY_IDENT) {
-            xyError(token, "'def' can only be applied to IDENTs");
-        }
-        xyTokenSetType(token, XY_IDDEF);
-    } else if(xyMapRef(map)) {
-        if(xyTokenGetType(token) != XY_IDENT) {
-            xyError(token, "'ref' can only be applied to IDENTs");
-        }
-        xyTokenSetType(token, XY_IDREF);
-    } else if(xyMapDot(map)) {
-        if(xyTokenGetType(token) != XY_IDENT) {
-            xyError(token, "'dot' can only be applied to IDENTs");
-        }
-        xyTokenSetType(token, XY_IDDOT);
-    }
-}
-*/
-
 // Execute a map expression to combinethe tokens on the top of the stack.
 static xyToken executeMap(xyMap map, xyTokenArray tokens, uint32 statesToPop, xyToken token) {
     if(map == xyMapNull) {
