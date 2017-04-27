@@ -8,6 +8,7 @@ void xyStop(void);
 void xyRegisterBuiltins(xyParser parser);
 xyBindfunc xyRegisterBindfunc(xyParser parser, utSym sym, xyBindfunc bindfunc);
 void xyUnregisterBindfunc(xyParser parser, utSym sym, xyBindfunc oldBindfunc);
+void xyBuildIdentTree(xyIdent currentScope, xyToken token);
 xyToken xyBindToken(xyIdent currentScope, xyToken token);
 void xyBindList(xyIdent currentScope, xyList list);
 void xyBindType(xyIdent currentScope, xyToken typeToken);

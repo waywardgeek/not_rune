@@ -119,6 +119,16 @@ static xyToken executeTokenMap(xyMap map, xyTokenArray tokens, uint32 statesToPo
     uint32 start = xyTokenArrayGetUsedToken(tokens) - statesToPop;
     xyToken token = xyTokenArrayGetiToken(tokens,  start + xyMapGetPosition(map));
     xyTokenArraySetiToken(tokens, start + xyMapGetPosition(map), xyTokenNull);
+    xyMapType type = xyMapGetType(map);
+    if (type == XY_MAP_IDFUNC) {
+        xyTokenSetType(token, XY_IDFUNC);
+    } else if (type == XY_MAP_IDTYPE) {
+        xyTokenSetType(token, XY_IDTYPE);
+    } else if (type == XY_MAP_IDSCOPE) {
+        xyTokenSetType(token, XY_IDSCOPE);
+    } else if (type == XY_MAP_IDVAR) {
+        xyTokenSetType(token, XY_IDVAR);
+    }
     return token;
 }
 
@@ -164,7 +174,8 @@ static xyToken executeMap(xyMap map, xyTokenArray tokens, uint32 statesToPop, xy
     case XY_MAP_LIST:
         value = executeListMap(map, tokens, statesToPop, token);
         break;
-    case XY_MAP_TOKEN:
+    case XY_MAP_TOKEN: case XY_MAP_IDFUNC: case XY_MAP_IDTYPE:
+    case XY_MAP_IDSCOPE: case XY_MAP_IDVAR:
         value = executeTokenMap(map, tokens, statesToPop);
         break;
     case XY_MAP_KEYWORD:

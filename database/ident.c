@@ -32,7 +32,7 @@ void xyPrintIdentTree(xyIdent ident) {
 xyIdent xyIdentCreate(xyIdent outerIdent, xyToken token) {
     xyIdent ident = xyIdentAlloc();
     if (token != xyTokenNull) {
-        xyTokenSetIdent(token, ident);
+        xyIdentInsertToken(ident, token);
         xyIdentSetSym(ident, xyTokenGetSymVal(token));
         xyIdentSetType(ident, xyTokenGetType(token));
     } else {

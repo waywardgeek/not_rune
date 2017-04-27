@@ -71,6 +71,11 @@ enum MapType XY_MAP_
     TOKEN
     KEYWORD
     NULL
+    // These maps convert tokens of type XY_IDENT to more specific types.
+    IDFUNC
+    IDTYPE
+    IDSCOPE
+    IDVAR
 
 class Root
 
@@ -118,7 +123,7 @@ class Action
 class Map
     MapType type
     union type
-        uint32 position: TOKEN
+        uint32 position: TOKEN IDFUNC IDTYPE IDSCOPE IDVAR
         sym Sym: KEYWORD
 
 

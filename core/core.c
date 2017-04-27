@@ -50,10 +50,11 @@ bool coCompileList(xyToken prog, char *outHFileName, char *outCFileName,
     coDatabaseStart();
     xyIdent globalScope = xyRootGetGlobalIdent(xyTheRoot);
     utAssert(xyTokenGetType(prog) == XY_LIST);
+    xyBuildIdentTree(globalScope, prog);
+    xyPrintIdentTree(globalScope);
     xyBindToken(globalScope, prog);
     coWriteHeaderFile(prog, outHFileName);
     coWriteSourceFile(prog, outCFileName);
     coDatabaseStop();
-    xyPrintIdentTree(globalScope);
     return true;
 }

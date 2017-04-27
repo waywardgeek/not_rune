@@ -203,6 +203,34 @@ void xyRegisterBuiltins(xyParser parser) {
     xyNullToken = buildConstantToken(parser, xyTokenNull, "null");
 }
 
+// Bind the token.  If it is a keyword-prefixed list, bind it recursively using
+// its bindfunc method.  Otherwise, it is a built-in type that we bind based on
+// the type.
+xyToken xyBindToken(xyIdent currentScope, xyToken token) {
+    if (xyTokenGetType(token) == XY_LIST) {
+        xyList list = xyTokenGetListVal(token);
+        if (xyListGetNumToken(list) == 0) {
+            xyError(token, "Unexpected empty list");
+        }
+        xyToken keywordToken = xyListGetiToken(list, 0);
+        if (xyTokenGetType(keywordToken) != XY_KEYWORD) {
+            xyError(keywordToken, "Expected keyword at start of list");
+        }
+        xyIdent childScope = xyListGetIdent(list);
+        if (childScope == xyIdentNull) {
+            childScope = currentScope;
+        }
+        xyBindfunc bindfunc = xyMtokenGetBindfunc(xyTokenGetMtoken(keywordToken));
+        if (bindfunc == NULL) {
+            xyError(token, "No binding function was registered for this keyword.");
+        }
+        return bindfunc(childScope, token);
+    }
+    xyToken typeToken = findBuiltinType(currentScope, token);
+    xyTokenSetTypeToken(token, typeToken);
+    return typeToken;
+}
+
 // Find any scoped identifier in the list.  It is illegal to have more than
 // one, or to have one in a scoped list since scoped lists are anonymous
 // namespaces.
@@ -226,31 +254,23 @@ static void setListScope(xyIdent parentScope, xyList list) {
     }
 }
 
-// Bind the token.  If it is a keyword-prefixed list, bind it recursively using
-// its bindfunc method.  Otherwise, it is a built-in type that we bind based on
-// the type.
-xyToken xyBindToken(xyIdent currentScope, xyToken token) {
-    if (xyTokenGetType(token) == XY_LIST) {
-        xyList list = xyTokenGetListVal(token);
-        if (xyListGetNumToken(list) == 0) {
-            xyError(token, "Unexpected empty list");
-        }
-        xyToken keywordToken = xyListGetiToken(list, 0);
-        if (xyTokenGetType(keywordToken) != XY_KEYWORD) {
-            xyError(keywordToken, "Expected keyword at start of list");
-        }
-        setListScope(currentScope, list);
-        xyIdent childScope = xyListGetIdent(list);
-        if (childScope == xyIdentNull) {
-            childScope = currentScope;
-        }
-        xyBindfunc bindfunc = xyMtokenGetBindfunc(xyTokenGetMtoken(keywordToken));
-        if (bindfunc == NULL) {
-            xyError(token, "No binding function was registered for this keyword.");
-        }
-        return bindfunc(childScope, token);
+// Recursively walk the tree, creating identifiers for all IDVAR, IDSFUNC,
+// IDTYPE, and IDSCOPE tokens.
+void xyBuildIdentTree(xyIdent currentScope, xyToken token) {
+    xyTokenType type = xyTokenGetType(token);
+    xyList list = xyTokenGetListVal(token);
+    setListScope(currentScope, list);
+    xyIdent childScope = xyListGetIdent(list);
+    if (childScope == xyIdentNull) {
+        childScope = currentScope;
     }
-    xyToken typeToken = findBuiltinType(currentScope, token);
-    xyTokenSetTypeToken(token, typeToken);
-    return typeToken;
+    xyToken childToken;
+    xyForeachListToken(list, childToken) {
+        type = xyTokenGetType(childToken);
+        if (type == XY_LIST) {
+            xyBuildIdentTree(childScope, childToken);
+        } else if (type == XY_IDVAR) {
+            xyIdentCreate(childScope, childToken);
+        }
+    } xyEndListToken;
 }

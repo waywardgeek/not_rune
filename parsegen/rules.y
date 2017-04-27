@@ -123,7 +123,18 @@ tokenExpr: '$' INTEGER
     if($2 < 1 || $2 > xpProductionGetUsedToken(xpCurrentProduction)) {
         xperror("$%u is out of range", $2);
     }
-    $$ = xyMapCreate(xpCurrentParser, XY_MAP_TOKEN);
+    xyMapType mapType = XY_MAP_TOKEN;
+    xpTokenType type = xpTokenGetType(xpProductionGetiToken(xpCurrentProduction, $2 - 1));
+    if (type == XP_IDFUNC) {
+        mapType = XY_MAP_IDFUNC;
+    } else if (type == XP_IDTYPE) {
+        mapType = XY_MAP_IDTYPE;
+    } else if (type == XP_IDSCOPE) {
+        mapType = XY_MAP_IDSCOPE;
+    } else if (type == XP_IDVAR) {
+        mapType = XY_MAP_IDVAR;
+    }
+    $$ = xyMapCreate(xpCurrentParser, mapType);
     xyMapSetPosition($$, $2 - 1);
 }
 | listExpr
@@ -174,19 +185,23 @@ token: KWINTEGER
 }
 | KWIDSCOPE
 {
-    xpTokenCreate(xpCurrentProduction, XY_IDSCOPE, utSymNull);
+    xpToken token = xpTokenCreate(xpCurrentProduction, XY_IDSCOPE, utSymNull);
+    xpTokenSetType(token, XP_IDSCOPE);
 }
 | KWIDFUNC
 {
-    xpTokenCreate(xpCurrentProduction, XY_IDFUNC, utSymNull);
+    xpToken token = xpTokenCreate(xpCurrentProduction, XY_IDFUNC, utSymNull);
+    xpTokenSetType(token, XP_IDFUNC);
 }
 | KWIDTYPE
 {
-    xpTokenCreate(xpCurrentProduction, XY_IDTYPE, utSymNull);
+    xpToken token = xpTokenCreate(xpCurrentProduction, XY_IDTYPE, utSymNull);
+    xpTokenSetType(token, XP_IDTYPE);
 }
 | KWIDVAR
 {
-    xpTokenCreate(xpCurrentProduction, XY_IDVAR, utSymNull);
+    xpToken token = xpTokenCreate(xpCurrentProduction, XY_IDVAR, utSymNull);
+    xpTokenSetType(token, XP_IDVAR);
 }
 | KWNEWLINE
 {

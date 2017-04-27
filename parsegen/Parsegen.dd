@@ -2,6 +2,14 @@ module Parsegen xp
 
 import Database
 
+// These are used to convert IDENT tokens to the correct type during parsing.
+enum TokenType XP_
+    TOKEN
+    IDFUNC
+    IDTYPE
+    IDSCOPE
+    IDVAR
+
 class Parser: xy
 
 class State: xy
@@ -18,6 +26,7 @@ class Item
     bool inUpdateList
 
 class Token
+    TokenType type  // Used to force type back to IDVAR, etc after parsing an IDENT.
 
 class Rule
 
